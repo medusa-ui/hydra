@@ -1,26 +1,57 @@
 package io.getmedusa.hydra.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getmedusa.hydra.model.ActiveService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import io.getmedusa.hydra.registry.InMemoryRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.BodyExtractors;
+import org.springframework.web.reactive.function.server.RouterFunction;
+import org.springframework.web.reactive.function.server.ServerRequest;
+import org.springframework.web.reactive.function.server.ServerResponse;
+import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.net.InetSocketAddress;
+import java.util.Optional;
 
-@RestController
+import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
+import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+
+@Component
 public class ServiceController {
 
-    @GetMapping("/services")
-    public List<ActiveService> getServices() {
-        return new ArrayList<>();
+    private final InMemoryRegistry inMemoryRegistry;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public ServiceController(InMemoryRegistry inMemoryRegistry) {
+        this.inMemoryRegistry = inMemoryRegistry;
     }
 
-    @PostMapping("/services/register")
-    public List<ActiveService> registerService(@RequestBody ActiveService activeService) {
-        System.out.println("services/register - " + activeService.getServiceName());
-        return getServices();
+    @Bean
+    RouterFunction<ServerResponse> setupRoutes() {
+        return route()
+                .GET("/services", accept(APPLICATION_JSON), this::getServices)
+                .POST("/services/register", accept(APPLICATION_JSON), this::registerService)
+                .build();
+    }
+
+    public Mono<ServerResponse> getServices(ServerRequest request) {
+        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(inMemoryRegistry.getServiceMap());
+    }
+
+    public Mono<ServerResponse> registerService(ServerRequest request) {
+        return request.body(BodyExtractors.toMono(ActiveService.class)).flatMap(activeService -> {
+            final Optional<InetSocketAddress> requestAddress = request.remoteAddress();
+            if(requestAddress.isPresent()) {
+                inMemoryRegistry.add(requestAddress.get().getAddress().getHostAddress(), activeService);
+                return ServerResponse.ok().bodyValue("");
+            } else {
+                return ServerResponse.badRequest().bodyValue("");
+            }
+        });
     }
 
 }
