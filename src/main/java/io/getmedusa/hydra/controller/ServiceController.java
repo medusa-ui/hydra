@@ -1,9 +1,8 @@
 package io.getmedusa.hydra.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getmedusa.hydra.model.ActiveService;
 import io.getmedusa.hydra.registry.InMemoryRegistry;
+import io.getmedusa.hydra.service.RouteService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -23,11 +22,12 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 @Component
 public class ServiceController {
 
+    private final RouteService routeService;
     private final InMemoryRegistry inMemoryRegistry;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public ServiceController(InMemoryRegistry inMemoryRegistry) {
+    public ServiceController(RouteService routeService, InMemoryRegistry inMemoryRegistry) {
         this.inMemoryRegistry = inMemoryRegistry;
+        this.routeService = routeService;
     }
 
     @Bean
@@ -46,6 +46,7 @@ public class ServiceController {
         return request.body(BodyExtractors.toMono(ActiveService.class)).flatMap(activeService -> {
             final Optional<InetSocketAddress> requestAddress = request.remoteAddress();
             if(requestAddress.isPresent()) {
+                routeService.add(activeService);
                 inMemoryRegistry.add(requestAddress.get().getAddress().getHostAddress(), activeService);
                 return ServerResponse.ok().bodyValue("");
             } else {
