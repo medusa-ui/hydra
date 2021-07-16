@@ -25,7 +25,7 @@ public class RouteService {
     }
 
     public void add(ActiveService activeService) {
-        System.out.println(activeService);
+        dynamicRouteProvider.add(activeService);
         dynamicRouteProvider.reload();
     }
 }

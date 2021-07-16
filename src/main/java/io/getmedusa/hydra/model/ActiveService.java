@@ -5,9 +5,18 @@ import java.util.Set;
 
 public class ActiveService {
 
+    private String host;
     private int port;
     private String name;
     private Set<String> endpoints = new HashSet<>();
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
 
     public int getPort() {
         return port;

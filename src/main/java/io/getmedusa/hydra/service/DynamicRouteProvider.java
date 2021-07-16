@@ -1,5 +1,6 @@
 package io.getmedusa.hydra.service;
 
+import io.getmedusa.hydra.model.ActiveService;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -36,6 +37,12 @@ public class DynamicRouteProvider extends CachingRouteLocator {
         return routeFlux;
     }
 
+    public void add(ActiveService activeService) {
+        for(String endpoint : activeService.getEndpoints()) {
+            routesMap.put(endpoint, "http://" + activeService.getHost() + ":" + activeService.getPort() + endpoint); //TODO https?
+        }
+    }
+
     static class NoopLocator implements RouteLocator {
         @Override
         public Flux<Route> getRoutes() {
@@ -45,7 +52,6 @@ public class DynamicRouteProvider extends CachingRouteLocator {
 
     private static Map<String, String> buildRouteMap() {
         Map<String, String> map = new HashMap<>();
-        map.put("/", "http://localhost:8080");
         map.put("/event-emitter/hello-world", "ws://localhost:8080/event-emitter/hello-world");
         map.put("/static/stylesheet.css", "http://localhost:8080/static/stylesheet.css");
         return map;

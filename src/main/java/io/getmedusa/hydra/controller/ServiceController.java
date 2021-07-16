@@ -46,8 +46,9 @@ public class ServiceController {
         return request.body(BodyExtractors.toMono(ActiveService.class)).flatMap(activeService -> {
             final Optional<InetSocketAddress> requestAddress = request.remoteAddress();
             if(requestAddress.isPresent()) {
+                activeService.setHost(requestAddress.get().getAddress().getHostAddress());
                 routeService.add(activeService);
-                inMemoryRegistry.add(requestAddress.get().getAddress().getHostAddress(), activeService);
+                inMemoryRegistry.add(activeService.getHost(), activeService);
                 return ServerResponse.ok().bodyValue("");
             } else {
                 return ServerResponse.badRequest().bodyValue("");
