@@ -1,6 +1,6 @@
-package io.getmedusa.hydra.service;
+package io.getmedusa.hydra.discovery.service;
 
-import io.getmedusa.hydra.model.ActiveService;
+import io.getmedusa.hydra.discovery.model.ActiveService;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
@@ -9,14 +9,16 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class DynamicRouteProvider extends CachingRouteLocator {
 
-    private Map<String, String> routesMap = buildRouteMap();
-
+    private final Set<ActiveService> activeServices = new HashSet<>();
     private final RouteLocatorBuilder builder;
+
     public DynamicRouteProvider(RouteLocatorBuilder builder) {
         super(new NoopLocator());
         this.builder = builder;
@@ -25,6 +27,21 @@ public class DynamicRouteProvider extends CachingRouteLocator {
     private Flux<Route> routeFlux = Flux.empty();
 
     public void reload() {
+        final Map<String, String> routesMap = new HashMap<>();
+        for(ActiveService activeService : activeServices) {
+            for(String endpoint : activeService.getEndpoints()) {
+                final String baseURI = activeService.toBaseURIWeb();
+                routesMap.put(endpoint, baseURI + endpoint);
+            }
+
+            for(String endpoint : activeService.getWebsockets()) {
+                final String baseURI = activeService.toBaseURIWebSocket();
+                routesMap.put("/event-emitter/" + endpoint, baseURI + endpoint);
+            }
+
+            routesMap.put("/static/**", activeService.toBaseURIWeb() + "/static/**");
+        }
+
         final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();
         for(Map.Entry<String, String> entrySet : routesMap.entrySet()) {
             routeBuilder.route(r -> r.path(entrySet.getKey()).uri(entrySet.getValue()));
@@ -38,9 +55,11 @@ public class DynamicRouteProvider extends CachingRouteLocator {
     }
 
     public void add(ActiveService activeService) {
-        for(String endpoint : activeService.getEndpoints()) {
-            routesMap.put(endpoint, "http://" + activeService.getHost() + ":" + activeService.getPort() + endpoint); //TODO https?
-        }
+        activeServices.add(activeService);
+    }
+
+    public void remove(ActiveService activeService) {
+        activeServices.remove(activeService);
     }
 
     static class NoopLocator implements RouteLocator {
@@ -49,12 +68,4 @@ public class DynamicRouteProvider extends CachingRouteLocator {
             return Flux.empty();
         }
     }
-
-    private static Map<String, String> buildRouteMap() {
-        Map<String, String> map = new HashMap<>();
-        map.put("/event-emitter/hello-world", "ws://localhost:8080/event-emitter/hello-world");
-        map.put("/static/stylesheet.css", "http://localhost:8080/static/stylesheet.css");
-        return map;
-    }
-
 }
