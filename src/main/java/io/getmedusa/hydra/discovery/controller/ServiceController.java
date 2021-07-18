@@ -1,23 +1,23 @@
 package io.getmedusa.hydra.discovery.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getmedusa.hydra.discovery.model.ActiveService;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.service.RouteService;
 import org.springframework.context.annotation.Bean;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyExtractors;
-import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.ServerRequest;
-import org.springframework.web.reactive.function.server.ServerResponse;
+import org.springframework.web.reactive.HandlerMapping;
+import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
+import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
-import java.util.Optional;
-
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.web.reactive.function.server.RequestPredicates.accept;
-import static org.springframework.web.reactive.function.server.RouterFunctions.route;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class ServiceController {
@@ -25,38 +25,71 @@ public class ServiceController {
     private final RouteService routeService;
     private final InMemoryRegistry inMemoryRegistry;
 
+    public static final ObjectMapper MAPPER = setupObjectMapper();
+
     public ServiceController(RouteService routeService, InMemoryRegistry inMemoryRegistry) {
         this.inMemoryRegistry = inMemoryRegistry;
         this.routeService = routeService;
     }
 
+    /**
+     * JSON mapper setup
+     *
+     * @return ObjectMapper
+     */
+    private static ObjectMapper setupObjectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        return objectMapper;
+    }
+
     @Bean
-    RouterFunction<ServerResponse> setupRoutes() {
-        return route()
-                .GET("/services", accept(APPLICATION_JSON), this::getServices)
-                .POST("/services/register", accept(APPLICATION_JSON), this::registerService)
-                .POST("/services/kill", accept(APPLICATION_JSON), this::killService)
-                .build();
+    public HandlerMapping webSocketHandlerMapping() {
+        final Map<String, WebSocketHandler> map = new HashMap<>();
+        map.put("/services/health", session -> session.send(Flux.empty())
+                .log()
+                .and(session.receive().log()
+                        .map(m -> this
+                                .handleIncomingHealthCheck(session, m.getPayloadAsText())
+                                .subscribe())
+                ).doFinally(x -> {
+                    System.out.println("TERMINATED CONNECTION");
+                }));
+        return setupURLMapping(map);
     }
 
-    public Mono<ServerResponse> getServices(ServerRequest request) {
-        return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).bodyValue(inMemoryRegistry.getServiceMap());
+    private SimpleUrlHandlerMapping setupURLMapping(Map<String, WebSocketHandler> map) {
+        SimpleUrlHandlerMapping handlerMapping = new SimpleUrlHandlerMapping();
+        handlerMapping.setOrder(1);
+        handlerMapping.setUrlMap(map);
+        return handlerMapping;
     }
 
-    public Mono<ServerResponse> registerService(ServerRequest request) {
-        return request.body(BodyExtractors.toMono(ActiveService.class)).flatMap(activeService -> {
-            final Optional<InetSocketAddress> requestAddress = request.remoteAddress();
-            if(requestAddress.isPresent()) {
-                activeService.setHost(requestAddress.get().getAddress().getHostAddress());
-                routeService.add(activeService);
-                inMemoryRegistry.add(activeService.getHost(), activeService);
-                return ServerResponse.ok().bodyValue("");
-            } else {
-                return ServerResponse.badRequest().bodyValue("");
+    private Mono<ActiveService> handleIncomingHealthCheck(WebSocketSession session, String payload) {
+        final InetSocketAddress remoteAddress = session.getHandshakeInfo().getRemoteAddress();
+        if (remoteAddress == null) return Mono.empty();
+        return mapPayload(payload).flatMap(a -> {
+            registerActiveService(remoteAddress, a);
+            return Mono.just(a);
+        });
+    }
+
+    private Mono<ActiveService> mapPayload(String payload) {
+        return Mono.fromCallable(() -> {
+            try {
+                return MAPPER.readValue(payload, ActiveService.class);
+            } catch (JsonProcessingException e) {
+                throw new IllegalStateException(e);
             }
         });
     }
 
+    private void registerActiveService(InetSocketAddress remoteAddress, ActiveService a) {
+        a.setHost(remoteAddress.getAddress().getHostAddress());
+        routeService.add(a);
+        inMemoryRegistry.add(a.getHost(), a);
+    }
+/*
     public Mono<ServerResponse> killService(ServerRequest request) {
         return request.body(BodyExtractors.toMono(ActiveService.class)).flatMap(activeService -> {
             final Optional<InetSocketAddress> requestAddress = request.remoteAddress();
@@ -70,5 +103,5 @@ public class ServiceController {
             }
         });
     }
-
+*/
 }
