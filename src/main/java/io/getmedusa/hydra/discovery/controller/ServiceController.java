@@ -16,7 +16,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -34,7 +36,6 @@ public class ServiceController {
 
     /**
      * JSON mapper setup
-     *
      * @return ObjectMapper
      */
     private static ObjectMapper setupObjectMapper() {
@@ -43,22 +44,46 @@ public class ServiceController {
         return objectMapper;
     }
 
+    private final List<WebSocketSession> activeSessions = new ArrayList<>();
+
+    /*
+    DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
+    Flux<WebSocketMessage> sendData = Flux.empty();
+
+    @Scheduled(fixedRate = 2000)
+    public void openSessions() {
+        System.out.println("Open sessions: " + activeSessions.size());
+    }
+
+    public void sendAMessage() {
+        byte[] bytes = "Data of services active right now".getBytes(StandardCharsets.UTF_8);
+        DataBuffer buffer = dataBufferFactory.wrap(bytes);
+        WebSocketMessage m = new WebSocketMessage(WebSocketMessage.Type.TEXT, buffer);
+        this.sendData = Flux.just(m);
+        for(WebSocketSession session : activeSessions) {
+            System.out.println("Sending data ...");
+            session.send(sendData);
+        }
+    }
+    */
+
     @Bean
     public HandlerMapping webSocketHandlerMapping() {
         final Map<String, WebSocketHandler> map = new HashMap<>();
         map.put("/services/health", session -> session.send(Flux.empty())
-                .log()
                 .and(session.receive()
                         .map(m -> this
                                 .handleIncomingHealthCheck(session, m.getPayloadAsText())
                                 .subscribe())
-                        .doFinally(x -> this.killService(session.getId()))
+                        .doFinally(x -> this.killService(session))
                 ));
         return setupURLMapping(map);
     }
 
-    private void killService(String sessionId) {
-        ActiveService activeService = inMemoryRegistry.getAndRemove(sessionId);
+    private void killService(WebSocketSession session) {
+        session.close().subscribe();
+        activeSessions.remove(session);
+        ActiveService activeService = inMemoryRegistry.getAndRemove(session.getId());
         routeService.remove(activeService);
     }
 
@@ -73,6 +98,7 @@ public class ServiceController {
         final InetSocketAddress remoteAddress = session.getHandshakeInfo().getRemoteAddress();
         if (remoteAddress == null) return Mono.empty();
         return mapPayload(payload).flatMap(a -> {
+            activeSessions.add(session);
             registerActiveService(session.getId(), remoteAddress, a);
             return Mono.just(a);
         });
@@ -93,19 +119,5 @@ public class ServiceController {
         routeService.add(a);
         inMemoryRegistry.add(sessionId, a);
     }
-/*
-    public Mono<ServerResponse> killService(ServerRequest request) {
-        return request.body(BodyExtractors.toMono(ActiveService.class)).flatMap(activeService -> {
-            final Optional<InetSocketAddress> requestAddress = request.remoteAddress();
-            if(requestAddress.isPresent()) {
-                activeService.setHost(requestAddress.get().getAddress().getHostAddress());
-                inMemoryRegistry.remove(activeService.getHost());
-                routeService.remove(activeService);
-                return ServerResponse.ok().bodyValue("");
-            } else {
-                return ServerResponse.badRequest().bodyValue("");
-            }
-        });
-    }
-*/
+
 }

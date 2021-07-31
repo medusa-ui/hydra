@@ -13,18 +13,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Overriding Cloud Gateway's default location logic with our own maintained set of custom {@link ActiveService} objects
+ * And a method 'reload()' to allow for service discovery. In other words, we can react to service come on- and offline.
+ */
 @Component
 public class DynamicRouteProvider extends CachingRouteLocator {
 
     private final Set<ActiveService> activeServices = new HashSet<>();
     private final RouteLocatorBuilder builder;
 
+    //important here that the Flux is not final, we specifically want to be able to reload this
+    private Flux<Route> routeFlux = Flux.empty();
+
     public DynamicRouteProvider(RouteLocatorBuilder builder) {
         super(new NoopLocator());
         this.builder = builder;
     }
-
-    private Flux<Route> routeFlux = Flux.empty();
 
     public void reload() {
         final Map<String, String> routesMap = new HashMap<>();
@@ -36,8 +41,8 @@ public class DynamicRouteProvider extends CachingRouteLocator {
         }
 
         final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();
-        for(Map.Entry<String, String> entrySet : routesMap.entrySet()) {
-            routeBuilder.route(r -> r.path(entrySet.getKey()).uri(entrySet.getValue()));
+        for(Map.Entry<String, String> pathToUriMap : routesMap.entrySet()) {
+            routeBuilder.route(r -> r.path(pathToUriMap.getKey()).uri(pathToUriMap.getValue()));
         }
         routeFlux = routeBuilder.build().getRoutes();
     }
@@ -55,6 +60,9 @@ public class DynamicRouteProvider extends CachingRouteLocator {
         activeServices.remove(activeService);
     }
 
+    /**
+     * Negating the use of RouteLocator, all our routes comes from the dynamic {@link ActiveService} set.
+     */
     static class NoopLocator implements RouteLocator {
         @Override
         public Flux<Route> getRoutes() {
