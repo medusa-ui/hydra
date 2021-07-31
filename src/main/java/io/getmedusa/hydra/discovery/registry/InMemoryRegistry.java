@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Component
 public class InMemoryRegistry {
@@ -24,5 +25,13 @@ public class InMemoryRegistry {
         final ActiveService activeService = this.sessionMap.get(sessionId);
         this.sessionMap.remove(sessionId);
         return activeService;
+    }
+
+    public Map<String, Set<String>> toURLMap() {
+        Map<String, Set<String>> urlMap = new HashMap<>();
+        for(Map.Entry<String, ActiveService> sessionEntry : sessionMap.entrySet()) {
+            urlMap.put(sessionEntry.getValue().getName(), sessionEntry.getValue().getEndpoints());
+        }
+        return urlMap;
     }
 }

@@ -6,11 +6,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getmedusa.hydra.discovery.model.ActiveService;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.service.RouteService;
+import io.getmedusa.hydra.util.WebsocketMessageUtils;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
 import org.springframework.web.reactive.socket.WebSocketHandler;
+import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -46,8 +49,7 @@ public class ServiceController {
 
     private final List<WebSocketSession> activeSessions = new ArrayList<>();
 
-    /*
-    DataBufferFactory dataBufferFactory = new DefaultDataBufferFactory();
+
     Flux<WebSocketMessage> sendData = Flux.empty();
 
     @Scheduled(fixedRate = 2000)
@@ -55,17 +57,13 @@ public class ServiceController {
         System.out.println("Open sessions: " + activeSessions.size());
     }
 
-    public void sendAMessage() {
-        byte[] bytes = "Data of services active right now".getBytes(StandardCharsets.UTF_8);
-        DataBuffer buffer = dataBufferFactory.wrap(bytes);
-        WebSocketMessage m = new WebSocketMessage(WebSocketMessage.Type.TEXT, buffer);
-        this.sendData = Flux.just(m);
+    public void sendURLMapToAll() {
+        this.sendData = Flux.just(WebsocketMessageUtils.fromObject(inMemoryRegistry.toURLMap()));
         for(WebSocketSession session : activeSessions) {
             System.out.println("Sending data ...");
-            session.send(sendData);
+            session.send(sendData).subscribe();
         }
     }
-    */
 
     @Bean
     public HandlerMapping webSocketHandlerMapping() {
@@ -100,6 +98,7 @@ public class ServiceController {
         return mapPayload(payload).flatMap(a -> {
             activeSessions.add(session);
             registerActiveService(session.getId(), remoteAddress, a);
+            sendURLMapToAll();
             return Mono.just(a);
         });
     }
