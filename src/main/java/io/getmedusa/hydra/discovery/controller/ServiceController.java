@@ -52,10 +52,14 @@ public class ServiceController {
                         .map(m -> this
                                 .handleIncomingHealthCheck(session, m.getPayloadAsText())
                                 .subscribe())
-                ).doFinally(x -> {
-                    System.out.println("TERMINATED CONNECTION");
-                }));
+                        .doFinally(x -> this.killService(session.getId()))
+                ));
         return setupURLMapping(map);
+    }
+
+    private void killService(String sessionId) {
+        ActiveService activeService = inMemoryRegistry.getAndRemove(sessionId);
+        routeService.remove(activeService);
     }
 
     private SimpleUrlHandlerMapping setupURLMapping(Map<String, WebSocketHandler> map) {
@@ -69,7 +73,7 @@ public class ServiceController {
         final InetSocketAddress remoteAddress = session.getHandshakeInfo().getRemoteAddress();
         if (remoteAddress == null) return Mono.empty();
         return mapPayload(payload).flatMap(a -> {
-            registerActiveService(remoteAddress, a);
+            registerActiveService(session.getId(), remoteAddress, a);
             return Mono.just(a);
         });
     }
@@ -84,10 +88,10 @@ public class ServiceController {
         });
     }
 
-    private void registerActiveService(InetSocketAddress remoteAddress, ActiveService a) {
+    private void registerActiveService(String sessionId, InetSocketAddress remoteAddress, ActiveService a) {
         a.setHost(remoteAddress.getAddress().getHostAddress());
         routeService.add(a);
-        inMemoryRegistry.add(a.getHost(), a);
+        inMemoryRegistry.add(sessionId, a);
     }
 /*
     public Mono<ServerResponse> killService(ServerRequest request) {

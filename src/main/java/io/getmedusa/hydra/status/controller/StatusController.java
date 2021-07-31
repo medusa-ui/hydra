@@ -1,17 +1,11 @@
 package io.getmedusa.hydra.status.controller;
 
-import io.getmedusa.hydra.discovery.model.ActiveService;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.status.model.GlobalStatus;
 import io.getmedusa.hydra.status.model.RouteStatus;
-import io.getmedusa.hydra.status.model.ServiceStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 public class StatusController {
@@ -31,17 +25,17 @@ public class StatusController {
         GlobalStatus globalStatus = new GlobalStatus();
         final RouteStatus routeStatus = new RouteStatus();
 
-        final Map<String, ActiveService> serviceMap = inMemoryRegistry.getServiceMap();
-        routeStatus.setActiveRoutes(serviceMap.keySet());
+        //final Map<String, ActiveService> serviceMap = inMemoryRegistry.getServiceMap();
+        //routeStatus.setActiveRoutes(serviceMap.keySet());
         globalStatus.setRouteStatus(routeStatus);
 
-        List<ServiceStatus> servicesStatus = serviceMap.values().stream().map(s -> {
+        /*List<ServiceStatus> servicesStatus = serviceMap.values().stream().map(s -> {
             ServiceStatus serviceStatus = new ServiceStatus();
             serviceStatus.setName(s.getName());
             serviceStatus.setUpSince(s.getActiveSince());
             return serviceStatus;
-        }).collect(Collectors.toList());
-        globalStatus.setServicesStatus(servicesStatus);
+        }).collect(Collectors.toList());*/
+        //globalStatus.setServicesStatus(servicesStatus);
         return globalStatus;
     }
 
