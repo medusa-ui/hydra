@@ -29,17 +29,10 @@ public class DynamicRouteProvider extends CachingRouteLocator {
     public void reload() {
         final Map<String, String> routesMap = new HashMap<>();
         for(ActiveService activeService : activeServices) {
-            for(String endpoint : activeService.getEndpoints()) {
-                final String baseURI = activeService.toBaseURIWeb();
-                routesMap.put(endpoint, baseURI + endpoint);
-            }
-
-            for(String endpoint : activeService.getWebsockets()) {
-                final String baseURI = activeService.toBaseURIWebSocket();
-                routesMap.put("/event-emitter/" + endpoint, baseURI + endpoint);
-            }
-
-            routesMap.put("/static/**", activeService.toBaseURIWeb() + "/static/**");
+            String baseURI = activeService.toBaseURI();
+            for(String endpoint : activeService.getEndpoints()) routesMap.put(endpoint, baseURI);
+            for(String endpoint : activeService.getWebsockets()) routesMap.put("/event-emitter/" + endpoint, baseURI);
+            for(String extension : activeService.getStaticResources()) routesMap.put("/**." + extension, baseURI);
         }
 
         final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();

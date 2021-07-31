@@ -12,6 +12,8 @@ public class ActiveService {
     private String name;
     private Set<String> endpoints = new HashSet<>();
     private Set<String> websockets = new HashSet<>();
+    private Set<String> staticResources = new HashSet<>();
+
     private final long activeSince;
 
     public ActiveService() {
@@ -58,6 +60,18 @@ public class ActiveService {
         return websockets;
     }
 
+    public void setWebsockets(Set<String> websockets) {
+        this.websockets = websockets;
+    }
+
+    public Set<String> getStaticResources() {
+        return staticResources;
+    }
+
+    public void setStaticResources(Set<String> staticResources) {
+        this.staticResources = staticResources;
+    }
+
     @Override
     public String toString() {
         return "ActiveService{" +
@@ -67,12 +81,8 @@ public class ActiveService {
                 '}';
     }
 
-    public String toBaseURIWeb() {
+    public String toBaseURI() {
         return ProtocolDecider.getWebProtocol(getHost()) + getHost() + ":" + getPort();
-    }
-
-    public String toBaseURIWebSocket() {
-        return ProtocolDecider.getWebSocketProtocol(getHost()) + getHost() + ":" + getPort() + "/event-emitter/";
     }
 
     @Override

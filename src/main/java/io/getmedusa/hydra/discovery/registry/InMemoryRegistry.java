@@ -16,7 +16,7 @@ public class InMemoryRegistry {
     }
 
     public void add(String host, ActiveService activeService) {
-        System.out.println("Incoming registration from: " + host + ":" + activeService.getPort());
+        System.out.println("Incoming registration from: " + host + ":" + activeService.getPort() + " w/ endpoints: " + activeService.getEndpoints().size());
         this.serviceMap.put(host + ":" + activeService.getPort(), activeService);
     }
 

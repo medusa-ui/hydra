@@ -48,7 +48,7 @@ public class ServiceController {
         final Map<String, WebSocketHandler> map = new HashMap<>();
         map.put("/services/health", session -> session.send(Flux.empty())
                 .log()
-                .and(session.receive().log()
+                .and(session.receive()
                         .map(m -> this
                                 .handleIncomingHealthCheck(session, m.getPayloadAsText())
                                 .subscribe())
