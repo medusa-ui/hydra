@@ -1,8 +1,10 @@
 package io.getmedusa.hydra.status.controller;
 
+import io.getmedusa.hydra.discovery.controller.ServiceController;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.status.model.GlobalStatus;
 import io.getmedusa.hydra.status.model.RouteStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
@@ -16,8 +18,12 @@ public class StatusController {
         this.inMemoryRegistry = inMemoryRegistry;
     }
 
+    @Autowired
+    ServiceController serviceController;
+
     @GetMapping("/hydra/status")
     public Mono<GlobalStatus> showStatus() {
+        serviceController.sendURLMapToAll();
         return Mono.just(determineGlobalStatus());
     }
 

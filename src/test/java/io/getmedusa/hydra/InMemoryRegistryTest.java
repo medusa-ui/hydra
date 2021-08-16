@@ -2,6 +2,8 @@ package io.getmedusa.hydra;
 
 import io.getmedusa.hydra.discovery.model.ActiveService;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
+import io.getmedusa.hydra.discovery.registry.KnownRoute;
+import io.getmedusa.hydra.discovery.registry.KnownRoutes;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -28,11 +30,11 @@ class InMemoryRegistryTest {
         registry.add(UUID.randomUUID().toString(), activeService1);
         registry.add(UUID.randomUUID().toString(), activeService2);
 
-        final Map<String, Set<String>> urlMap = registry.toURLMap();
-        System.out.println(urlMap);
-        Assertions.assertEquals(2, urlMap.size());
-        for(String key : urlMap.keySet()) {
-            Assertions.assertTrue("serviceA".equals(key) || "serviceB".equals(key));
+        final KnownRoutes urlMap = registry.toURLMap();
+        Assertions.assertEquals(2, urlMap.getKnownRoutes().size());
+        for(KnownRoute key : urlMap.getKnownRoutes()) {
+            final String service = key.getService();
+            Assertions.assertTrue("serviceA".equals(service) || "serviceB".equals(service));
         }
     }
 

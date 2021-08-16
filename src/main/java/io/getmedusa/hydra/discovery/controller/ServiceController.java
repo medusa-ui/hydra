@@ -8,7 +8,6 @@ import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.service.RouteService;
 import io.getmedusa.hydra.util.WebsocketMessageUtils;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.HandlerMapping;
 import org.springframework.web.reactive.handler.SimpleUrlHandlerMapping;
@@ -52,7 +51,7 @@ public class ServiceController {
 
     Flux<WebSocketMessage> sendData = Flux.empty();
 
-    @Scheduled(fixedRate = 2000)
+    //@Scheduled(fixedRate = 2000)
     public void openSessions() {
         System.out.println("Open sessions: " + activeSessions.size());
     }
@@ -60,7 +59,6 @@ public class ServiceController {
     public void sendURLMapToAll() {
         this.sendData = Flux.just(WebsocketMessageUtils.fromObject(inMemoryRegistry.toURLMap()));
         for(WebSocketSession session : activeSessions) {
-            System.out.println("Sending data ...");
             session.send(sendData).subscribe();
         }
     }
@@ -83,6 +81,7 @@ public class ServiceController {
         activeSessions.remove(session);
         ActiveService activeService = inMemoryRegistry.getAndRemove(session.getId());
         routeService.remove(activeService);
+        sendURLMapToAll();
     }
 
     private SimpleUrlHandlerMapping setupURLMapping(Map<String, WebSocketHandler> map) {
