@@ -57,7 +57,10 @@ public class ServiceController {
     }
 
     public void sendURLMapToAll() {
-        this.sendData = Flux.just(WebsocketMessageUtils.fromObject(inMemoryRegistry.toURLMap()));
+        Map<String, Object> dataToSend = new HashMap<>();
+        dataToSend.put("urlMap", inMemoryRegistry.toURLMap());
+        dataToSend.put("menuItems", inMemoryRegistry.getMenuItems());
+        this.sendData = Flux.just(WebsocketMessageUtils.fromObject(dataToSend));
         for(WebSocketSession session : activeSessions) {
             session.send(sendData).subscribe();
         }

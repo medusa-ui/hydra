@@ -1,9 +1,7 @@
 package io.getmedusa.hydra.discovery.model;
 
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class ActiveService {
 
@@ -13,6 +11,7 @@ public class ActiveService {
     private Set<String> endpoints = new HashSet<>();
     private Set<String> websockets = new HashSet<>();
     private Set<String> staticResources = new HashSet<>();
+    private Map<String, List<MenuItem>> menuItems = new HashMap<>();
 
     private final long activeSince;
 
@@ -70,6 +69,14 @@ public class ActiveService {
 
     public void setStaticResources(Set<String> staticResources) {
         this.staticResources = staticResources;
+    }
+
+    public Map<String, List<MenuItem>> getMenuItems() {
+        return menuItems;
+    }
+
+    public void setMenuItems(Map<String, List<MenuItem>> menuItems) {
+        this.menuItems = menuItems;
     }
 
     @Override

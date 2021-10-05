@@ -1,0 +1,12 @@
+body {
+    margin-left: 4em;
+    margin-top: 2em;
+}
+body, html {
+    background: #22292e;
+    color: whitesmoke;
+    font-family: 'Inter', sans-serif;
+}
+h1 {
+    color: #49eb8a;
+}
