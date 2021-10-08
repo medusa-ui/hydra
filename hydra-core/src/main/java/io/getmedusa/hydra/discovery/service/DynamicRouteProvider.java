@@ -1,17 +1,16 @@
 package io.getmedusa.hydra.discovery.service;
 
 import io.getmedusa.hydra.discovery.model.ActiveService;
-import org.springframework.cloud.gateway.handler.predicate.PathRoutePredicateFactory;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.Route;
 import org.springframework.cloud.gateway.route.RouteLocator;
+import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -22,34 +21,33 @@ import java.util.Set;
 public class DynamicRouteProvider extends CachingRouteLocator {
 
     private final Set<ActiveService> activeServices = new HashSet<>();
-    private final PathRoutePredicateFactory predicateFactory;
+    private final RouteLocatorBuilder builder;
 
     //important here that the Flux is not final, we specifically want to be able to reload this
     private Flux<Route> routeFlux = Flux.empty();
 
-    public DynamicRouteProvider(PathRoutePredicateFactory predicateFactory) {
+    public DynamicRouteProvider(RouteLocatorBuilder builder) {
         super(new NoopLocator());
-        this.predicateFactory = predicateFactory;
+        this.builder = builder;
     }
 
     public void reload() {
-        final Set<Route> routes = new HashSet<>();
+        final Map<String, ActiveService> routesMap = new HashMap<>();
         for(ActiveService activeService : activeServices) {
-            String baseURI = activeService.toBaseURI();
-            for(String endpoint : activeService.getEndpoints()) routes.add(buildRoute(endpoint, baseURI));
-            for(String endpoint : activeService.getWebsockets()) routes.add(buildRoute("/event-emitter/" + endpoint, baseURI));
-            for(String extension : activeService.getStaticResources()) routes.add(buildRoute("/**." + extension, baseURI));
+            for(String endpoint : activeService.getEndpoints()) routesMap.put(endpoint, activeService);
+            for(String endpoint : activeService.getWebsockets()) routesMap.put("/event-emitter/" + endpoint, activeService);
+            for(String extension : activeService.getStaticResources()) routesMap.put("/**." + extension, activeService);
         }
-        this.routeFlux = Mono.just(routes).flatMapMany(Flux::fromIterable);
-    }
 
-    private Route buildRoute(String path, String uri) {
-        return Route.async()
-                .id(path + "$" + uri)
-                .uri(uri)
-                .predicate(predicateFactory.apply(c -> c.setPatterns(List.of(path))))
-                .replaceFilters(new ArrayList<>())
-                .build();
+        final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();
+        for(Map.Entry<String, ActiveService> pathToUriMap : routesMap.entrySet()) {
+            final ActiveService activeService = pathToUriMap.getValue();
+            routeBuilder.route(r -> r
+                    .path(pathToUriMap.getKey())
+                    .filters(f -> f.addRequestHeader("hydra-path", Integer.toString(activeService.hashCode())))
+                    .uri(activeService.toBaseURI()));
+        }
+        routeFlux = routeBuilder.build().getRoutes();
     }
 
     @Override
