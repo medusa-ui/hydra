@@ -8,9 +8,7 @@ import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,21 +30,28 @@ public class DynamicRouteProvider extends CachingRouteLocator {
     }
 
     public void reload() {
-        final Map<String, ActiveService> routesMap = new HashMap<>();
+        final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();
+
         for(ActiveService activeService : activeServices) {
-            for(String endpoint : activeService.getEndpoints()) routesMap.put(endpoint, activeService);
-            for(String endpoint : activeService.getWebsockets()) routesMap.put("/event-emitter/" + endpoint, activeService);
-            for(String extension : activeService.getStaticResources()) routesMap.put("/**." + extension, activeService);
+            final String baseURI = activeService.toBaseURI();
+            final String hydraPath = Integer.toString(activeService.hashCode());
+
+            for(String endpoint : activeService.getEndpoints()) {
+                routeBuilder.route(r -> r.path(endpoint)
+                                        .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
+                                        .uri(baseURI));
+            }
+            for(String endpoint : activeService.getWebsockets()) {
+                routeBuilder.route(r -> r.path("/event-emitter/" + endpoint).uri(baseURI));
+            }
+
+            for(String extension : activeService.getStaticResources()) {
+                routeBuilder.route(r -> r.path("/" + hydraPath + "/**." + extension)
+                                         .filters(f -> f.rewritePath("/" + hydraPath + "/","/"))
+                                         .uri(baseURI));
+            }
         }
 
-        final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();
-        for(Map.Entry<String, ActiveService> pathToUriMap : routesMap.entrySet()) {
-            final ActiveService activeService = pathToUriMap.getValue();
-            routeBuilder.route(r -> r
-                    .path(pathToUriMap.getKey())
-                    .filters(f -> f.addRequestHeader("hydra-path", Integer.toString(activeService.hashCode())))
-                    .uri(activeService.toBaseURI()));
-        }
         routeFlux = routeBuilder.build().getRoutes();
     }
 
