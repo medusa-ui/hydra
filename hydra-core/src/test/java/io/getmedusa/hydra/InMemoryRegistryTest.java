@@ -6,13 +6,20 @@ import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.registry.KnownRoute;
 import io.getmedusa.hydra.discovery.registry.KnownRoutes;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
 class InMemoryRegistryTest {
 
-    private final InMemoryRegistry registry = new InMemoryRegistry();
+    private InMemoryRegistry registry;
+
+    @BeforeEach
+    void clear() {
+        registry = new InMemoryRegistry();
+    }
 
     @Test
     void testToURLList() {
@@ -39,54 +46,120 @@ class InMemoryRegistryTest {
         }
     }
 
-    @Test
-    void testMenusWithMultipleSessions() {
+    private MenuItem buildMenu(String endpoint) {
         final MenuItem item = new MenuItem();
-        item.setEndpoint("/123");
-        item.setLabel("My label");
-        Map<String, List<MenuItem>> menuItemsA = Map.of("top-menu", Collections.singletonList(item));
+        item.setLabel(StringUtils.capitalize(endpoint.substring(1).replace("-", " ")));
+        item.setEndpoint(endpoint);
+        return item;
+    }
 
-        final MenuItem item2 = new MenuItem();
-        item2.setEndpoint("/543");
-        item.setLabel("Other label");
-        Map<String, List<MenuItem>> menuItemsB = Map.of("bottom-menu", Collections.singletonList(item2));
+    private ActiveService buildService(String menuName, MenuItem ... menuItem) {
+        MenuItem mainItem = menuItem[0];
+        ActiveService activeService = new ActiveService();
+        activeService.setHost("127.0.0." + ((int)mainItem.getLabel().substring(mainItem.getLabel().length()-1).toCharArray()[0]));
+        activeService.setPort(8080);
+        activeService.setName(mainItem.getLabel().replace(" ", ""));
+        activeService.setEndpoints(Set.of(mainItem.getEndpoint()));
+        activeService.getMenuItems().put(menuName, Set.of(menuItem));
+        return activeService;
+    }
 
-        ActiveService activeServiceA1 = new ActiveService();
-        activeServiceA1.setHost("127.0.0.111");
-        activeServiceA1.setPort(8080);
-        activeServiceA1.setName("serviceA");
-        activeServiceA1.setEndpoints(new HashSet<>(Arrays.asList("/page3", "/page4")));
-        activeServiceA1.setMenuItems(menuItemsA);
+    @Test
+    void testMenusSimpleAdditionRemovalOfSameMenu() {
+        final String menuName = "top-menu";
 
-        ActiveService activeServiceA2 = new ActiveService();
-        activeServiceA2.setHost("127.0.0.112");
-        activeServiceA2.setPort(8080);
-        activeServiceA2.setName("serviceA");
-        activeServiceA2.setEndpoints(new HashSet<>(Arrays.asList("/page3", "/page4")));
-        activeServiceA2.setMenuItems(menuItemsA);
+        final MenuItem itemA = buildMenu("/service-a");
+        ActiveService activeServiceA = buildService(menuName, itemA);
+        String sessionA = UUID.randomUUID().toString();
 
-        ActiveService activeServiceB = new ActiveService();
-        activeServiceB.setHost("127.0.0.50");
-        activeServiceB.setPort(8081);
-        activeServiceB.setName("serviceB");
-        activeServiceB.setEndpoints(new HashSet<>(List.of("/page")));
-        activeServiceB.setMenuItems(menuItemsB);
-
-        String sessionA1 = UUID.randomUUID().toString();
-        String sessionA2 = UUID.randomUUID().toString();
+        final MenuItem itemB = buildMenu("/service-b");
+        ActiveService activeServiceB = buildService(menuName, itemB);
         String sessionB = UUID.randomUUID().toString();
 
-        registry.add(sessionA1, activeServiceA1);
-        registry.add(sessionA2, activeServiceA2);
+        registry.add(sessionA, activeServiceA);
         registry.add(sessionB, activeServiceB);
 
-        Assertions.assertEquals(2, registry.getMenuItems().size());
-        registry.getAndRemove(sessionA2);
-        Assertions.assertEquals(2, registry.getMenuItems().size());
-        registry.getAndRemove(sessionA1);
-        Assertions.assertEquals(1, registry.getMenuItems().size());
+        System.out.println(menuName + ": " + registry.getMenuItems().get(menuName));
+
+        Assertions.assertEquals(2, registry.getMenuItems().get(menuName).size());
         registry.getAndRemove(sessionB);
-        Assertions.assertEquals(0, registry.getMenuItems().size());
+
+        System.out.println("Remove session B");
+        System.out.println(menuName + ": " + registry.getMenuItems().get(menuName));
+
+        Assertions.assertEquals(1, registry.getMenuItems().get(menuName).size());
+    }
+
+    @Test
+    void testMenusAddRemovalDifferentMenus() {
+        final String menuName1 = "menu-1";
+        final String menuName2 = "menu-2";
+
+        final MenuItem unrelated = buildMenu("/unrelated");
+        final MenuItem itemA = buildMenu("/service-a");
+
+        ActiveService activeServiceA = buildService(menuName1, itemA);
+        activeServiceA.getMenuItems().put(menuName2, Set.of(itemA, unrelated));
+        String sessionA = UUID.randomUUID().toString();
+
+        final MenuItem itemB = buildMenu("/service-b");
+        ActiveService activeServiceB = buildService(menuName1, itemB);
+        activeServiceB.getMenuItems().put(menuName2, Set.of(itemB, unrelated));
+        String sessionB = UUID.randomUUID().toString();
+
+        registry.add(sessionA, activeServiceA);
+        registry.add(sessionB, activeServiceB);
+
+        System.out.println(menuName1 + ": " + registry.getMenuItems().get(menuName1));
+        System.out.println(menuName2 + ": " + registry.getMenuItems().get(menuName2));
+
+        Assertions.assertEquals(2, registry.getMenuItems().get(menuName1).size());
+        Assertions.assertEquals(3, registry.getMenuItems().get(menuName2).size());
+        registry.getAndRemove(sessionB);
+        System.out.println("Remove session B");
+
+        System.out.println(menuName1 + ": " + registry.getMenuItems().get(menuName1));
+        System.out.println(menuName2 + ": " + registry.getMenuItems().get(menuName2));
+
+        Assertions.assertEquals(1, registry.getMenuItems().get(menuName1).size());
+        Assertions.assertEquals(2, registry.getMenuItems().get(menuName2).size());
+    }
+
+    @Test
+    void testMenuAddRemovalButOverlappingSessions() {
+        final String menuName = "top-menu";
+
+        final MenuItem itemA = buildMenu("/service-a");
+        ActiveService activeServiceA = buildService(menuName, itemA);
+        String sessionA = UUID.randomUUID().toString();
+
+        final MenuItem itemB = buildMenu("/service-b");
+        ActiveService activeServiceB1 = buildService(menuName, itemB);
+        String sessionB1 = UUID.randomUUID().toString();
+
+        ActiveService activeServiceB2 = buildService(menuName, itemB);
+        activeServiceB2.setPort(9191);
+        String sessionB2 = UUID.randomUUID().toString();
+
+        registry.add(sessionA, activeServiceA);
+        registry.add(sessionB1, activeServiceB1);
+        registry.add(sessionB2, activeServiceB2);
+
+        System.out.println(menuName + ": " + registry.getMenuItems().get(menuName));
+
+        Assertions.assertEquals(2, registry.getMenuItems().get(menuName).size());
+        registry.getAndRemove(sessionB1);
+
+        System.out.println("Remove session B1");
+        System.out.println(menuName + ": " + registry.getMenuItems().get(menuName));
+
+        Assertions.assertEquals(2, registry.getMenuItems().get(menuName).size());
+
+        registry.getAndRemove(sessionB2);
+        System.out.println("Remove session B2");
+        System.out.println(menuName + ": " + registry.getMenuItems().get(menuName));
+
+        Assertions.assertEquals(1, registry.getMenuItems().get(menuName).size());
     }
 
 }

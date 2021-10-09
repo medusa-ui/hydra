@@ -11,7 +11,7 @@ public class ActiveService {
     private Set<String> endpoints = new HashSet<>();
     private Set<String> websockets = new HashSet<>();
     private Set<String> staticResources = new HashSet<>();
-    private Map<String, List<MenuItem>> menuItems = new HashMap<>();
+    private Map<String, Set<MenuItem>> menuItems = new HashMap<>();
 
     private final long activeSince;
 
@@ -71,11 +71,11 @@ public class ActiveService {
         this.staticResources = staticResources;
     }
 
-    public Map<String, List<MenuItem>> getMenuItems() {
+    public Map<String, Set<MenuItem>> getMenuItems() {
         return menuItems;
     }
 
-    public void setMenuItems(Map<String, List<MenuItem>> menuItems) {
+    public void setMenuItems(Map<String, Set<MenuItem>> menuItems) {
         this.menuItems = menuItems;
     }
 

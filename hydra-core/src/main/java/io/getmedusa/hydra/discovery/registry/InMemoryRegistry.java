@@ -10,8 +10,8 @@ import java.util.*;
 public class InMemoryRegistry {
 
     private final Map<String, ActiveService> sessionMap = new HashMap<>();
-    private final Map<String, List<MenuItem>> menuItems = new HashMap<>();
-    private final Map<String, Set<String>> menuSessions = new HashMap<>();
+    private final Map<String, Set<MenuItem>> menuItems = new HashMap<>(); //menu name / items
+    private final Map<String, Set<MenuItem>> menuSessions = new HashMap<>(); //session id / items
 
     public Map<String, ActiveService> getSessionMap() {
         return sessionMap;
@@ -21,40 +21,39 @@ public class InMemoryRegistry {
         System.out.println("Incoming registration from: " + activeService.getHost() + ":" + activeService.getPort() + " w/ endpoints: " + activeService.getEndpoints().size());
         this.sessionMap.put(sessionId, activeService);
 
-        for(Map.Entry<String, List<MenuItem>> menuItem : activeService.getMenuItems().entrySet()) {
-            final String key = menuItem.getKey();
-            final List<MenuItem> items = new ArrayList<>(menuItem.getValue());
+        for(Map.Entry<String, Set<MenuItem>> menuItemEntrySet : activeService.getMenuItems().entrySet()) {
+            final String key = menuItemEntrySet.getKey();
+            final Set<MenuItem> items = new HashSet<>(menuItemEntrySet.getValue());
             if(this.menuItems.containsKey(key)) {
                 this.menuItems.get(key).addAll(items);
             } else {
                 this.menuItems.put(key, items);
             }
+
+            for(MenuItem menuItem : menuItemEntrySet.getValue()) {
+                Set<MenuItem> m = this.menuSessions.getOrDefault(sessionId, new HashSet<>());
+                m.add(menuItem);
+                this.menuSessions.put(sessionId, m);
+            }
         }
-        this.menuSessions.put(sessionId, activeService.getMenuItems().keySet());
     }
 
     public ActiveService getAndRemove(String sessionId) {
         final ActiveService activeService = this.sessionMap.get(sessionId);
         this.sessionMap.remove(sessionId);
 
-        Set<String> keysPotentiallyDeleted = new HashSet<>(this.menuSessions.get(sessionId));
+        Set<MenuItem> menuItemsPotentiallyDeleted = this.menuSessions.get(sessionId);
         this.menuSessions.remove(sessionId);
-        for(String keyToPotentiallyDeleted : keysPotentiallyDeleted) {
-            if(!isPresentWithOtherSession(keyToPotentiallyDeleted)) {
-                this.menuItems.remove(keyToPotentiallyDeleted);
-            }
+
+        for(Set<MenuItem> setThatMightAlsoContainPotentialDeletions : this.menuSessions.values()) {
+            menuItemsPotentiallyDeleted.removeIf(setThatMightAlsoContainPotentialDeletions::contains);
+        }
+
+        for(Set<MenuItem> items : menuItems.values()) {
+            menuItemsPotentiallyDeleted.forEach(items::remove);
         }
 
         return activeService;
-    }
-
-    private boolean isPresentWithOtherSession(String key) {
-        for(Set<String> sessionKeys : this.menuSessions.values()) {
-            if(sessionKeys.contains(key)){
-                return true;
-            }
-        }
-        return false;
     }
 
     public KnownRoutes toURLMap() {
@@ -71,7 +70,7 @@ public class InMemoryRegistry {
         return knownRoutes;
     }
 
-    public Map<String, List<MenuItem>> getMenuItems() {
+    public Map<String, Set<MenuItem>> getMenuItems() {
         return menuItems;
     }
 
