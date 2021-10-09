@@ -8,7 +8,7 @@ The goal of Hydra is to be an entry point gateway proxy that allows you to deplo
 
 
 
-[![Hydra demo video](https://i9.ytimg.com/vi_webp/RHFn0LW7bqw/mqdefault.webp?sqp=CPjLiIsG&rs=AOn4CLCkAsgIVg6ESl5CDX7HbaUPSK3x9Q)](https://www.youtube.com/watch?v=RHFn0LW7bqw "Hydra demo")
+[![Hydra demo video](https://yt-embed.herokuapp.com/embed?v=RHFn0LW7bqw)](https://www.youtube.com/watch?v=RHFn0LW7bqw "Hydra demo")
 
 ---
 
