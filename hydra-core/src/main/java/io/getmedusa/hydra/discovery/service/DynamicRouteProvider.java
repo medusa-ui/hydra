@@ -47,7 +47,9 @@ public class DynamicRouteProvider extends CachingRouteLocator {
 
             for(String extension : activeService.getStaticResources()) {
                 routeBuilder.route(r -> r.path("/" + hydraPath + "/**." + extension)
-                                         .filters(f -> f.rewritePath("/" + hydraPath + "/","/"))
+                                         .filters(f -> f
+                                                     .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600")
+                                                     .rewritePath("/" + hydraPath + "/","/"))
                                          .uri(baseURI));
             }
         }
