@@ -18,6 +18,7 @@ import java.util.Set;
 @Component
 public class DynamicRouteProvider extends CachingRouteLocator {
 
+    protected static final String SLASH = "/";
     private final Set<ActiveService> activeServices = new HashSet<>();
     private final RouteLocatorBuilder builder;
 
@@ -35,21 +36,25 @@ public class DynamicRouteProvider extends CachingRouteLocator {
         for(ActiveService activeService : activeServices) {
             final String baseURI = activeService.toBaseURI();
             final String hydraPath = Integer.toString(activeService.hashCode());
+            final String slashedHydraPath = SLASH + hydraPath + SLASH;
 
             for(String endpoint : activeService.getEndpoints()) {
                 routeBuilder.route(r -> r.path(endpoint)
                                         .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
                                         .uri(baseURI));
             }
+
             for(String endpoint : activeService.getWebsockets()) {
-                routeBuilder.route(r -> r.path("/event-emitter/" + endpoint).uri(baseURI));
+                routeBuilder.route(r -> r.path(SLASH + hydraPath + "/event-emitter/" + endpoint)
+                                        .filters(f -> f.rewritePath(slashedHydraPath, SLASH))
+                                        .uri(baseURI));
             }
 
             for(String extension : activeService.getStaticResources()) {
-                routeBuilder.route(r -> r.path("/" + hydraPath + "/**." + extension)
+                routeBuilder.route(r -> r.path(SLASH + hydraPath + "/**." + extension)
                                          .filters(f -> f
                                                      .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600")
-                                                     .rewritePath("/" + hydraPath + "/","/"))
+                                                     .rewritePath(slashedHydraPath, SLASH))
                                          .uri(baseURI));
             }
         }

@@ -59,7 +59,8 @@ public class InMemoryRegistry {
     public KnownRoutes toURLMap() {
         KnownRoutes knownRoutes = new KnownRoutes();
         List<KnownRoute> routeList = new ArrayList<>();
-        for(Map.Entry<String, ActiveService> sessionEntry : sessionMap.entrySet()) { //TODO possible issue with concurrent map
+        Map<String, ActiveService> clonedSessionMap = new HashMap<>(sessionMap);
+        for(Map.Entry<String, ActiveService> sessionEntry : clonedSessionMap.entrySet()) {
             KnownRoute route = new KnownRoute();
             route.setService(sessionEntry.getValue().getName());
             route.setAvailableRoutes(sessionEntry.getValue().getEndpoints());
