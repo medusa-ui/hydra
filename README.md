@@ -6,6 +6,10 @@ Combine Medusa with Hydra for modularity.
 
 The goal of Hydra is to be an entry point gateway proxy that allows you to deploy frontends modularly. It is a ready-for-use combination of a gateway with service discovery, load balancing, and JWT security. It uses proven frameworks like Spring Cloud Gateway and Service Discovery behind the scenes but streamlines their setup.
 
+
+
+[![Hydra demo video](https://i9.ytimg.com/vi_webp/RHFn0LW7bqw/mqdefault.webp?sqp=CPjLiIsG&rs=AOn4CLCkAsgIVg6ESl5CDX7HbaUPSK3x9Q)](https://www.youtube.com/watch?v=RHFn0LW7bqw "Hydra demo")
+
 ---
 
 Concept documentation: https://medusa-ui.gitbook.io/docs/hydra/concept
