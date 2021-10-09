@@ -10,3 +10,9 @@ body, html {
 h1 {
     color: #e95f5f;
 }
+a:link, a:active, a:visited {
+    color: #c0f9ff;
+}
+a:hover {
+    color: #60f0ff;
+}
