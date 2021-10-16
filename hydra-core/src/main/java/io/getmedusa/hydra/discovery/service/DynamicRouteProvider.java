@@ -1,6 +1,5 @@
 package io.getmedusa.hydra.discovery.service;
 
-import io.getmedusa.hydra.discovery.filter.ConditionalAddJWTBasedOnLoginFilter;
 import io.getmedusa.hydra.discovery.model.ActiveService;
 import org.springframework.cloud.gateway.route.CachingRouteLocator;
 import org.springframework.cloud.gateway.route.Route;
@@ -24,15 +23,12 @@ public class DynamicRouteProvider extends CachingRouteLocator {
     private final Set<ActiveService> activeServices = new HashSet<>();
     private final RouteLocatorBuilder builder;
 
-    private final ConditionalAddJWTBasedOnLoginFilter conditionalAddJWTBasedOnLoginFilter;
-
     //important here that the Flux is not final, we specifically want to be able to reload this
     private Flux<Route> routeFlux = Flux.empty();
 
-    public DynamicRouteProvider(RouteLocatorBuilder builder, ConditionalAddJWTBasedOnLoginFilter conditionalAddJWTBasedOnLoginFilter) {
+    public DynamicRouteProvider(RouteLocatorBuilder builder) {
         super(new NoopLocator());
         this.builder = builder;
-        this.conditionalAddJWTBasedOnLoginFilter = conditionalAddJWTBasedOnLoginFilter;
     }
 
     public void reload() {
@@ -45,8 +41,7 @@ public class DynamicRouteProvider extends CachingRouteLocator {
 
             for(String endpoint : activeService.getEndpoints()) {
                 routeBuilder.route(r -> r.path(endpoint)
-                                        .filters(f -> f.addRequestHeader("hydra-path", hydraPath)
-                                        .filter(conditionalAddJWTBasedOnLoginFilter.apply(new ConditionalAddJWTBasedOnLoginFilter.Config())))
+                                        .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
                                         .uri(baseURI));
             }
 
