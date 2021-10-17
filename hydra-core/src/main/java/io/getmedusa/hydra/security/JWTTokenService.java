@@ -5,6 +5,7 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import io.getmedusa.hydra.discovery.controller.ServiceController;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -22,11 +23,15 @@ import java.util.Date;
 @ConditionalOnProperty("hydra.enable-security")
 public class JWTTokenService {
 
-    private String publicKeyAsString;
     private Algorithm algorithm;
 
-    public JWTTokenService() {
-        //TODO: check if hydra.high-availability=true; if so find out who the master is and ask it to send a new key
+    private final ServiceController serviceController;
+
+    public static String publicKeyAsString = null;
+    private RSAPublicKey publicKey;
+
+    public JWTTokenService(ServiceController serviceController) {
+        this.serviceController = serviceController;
         cycleKeys();
     }
 
@@ -38,11 +43,11 @@ public class JWTTokenService {
         System.out.println("Cycling keypair ...");
         final KeyPair pair = generateKeyPair();
         final RSAPrivateKey privateKey = (RSAPrivateKey) pair.getPrivate();
-        final RSAPublicKey publicKey = (RSAPublicKey) pair.getPublic();
+        publicKey = (RSAPublicKey) pair.getPublic();
         this.algorithm = Algorithm.RSA256(publicKey, privateKey);
-        this.publicKeyAsString = getKey(publicKey.getEncoded());
+        publicKeyAsString = getKey(publicKey.getEncoded());
         System.out.println("Keypair generated");
-        //TODO: inform connected systems of this change and update their respective caches
+        serviceController.sendPublicKey();
     }
 
     private KeyPair generateKeyPair() {
@@ -59,14 +64,6 @@ public class JWTTokenService {
         return Base64.getEncoder().encodeToString(encoded);
     }
 
-    /**
-     * This key can be used by other systems to verify the JWT validity
-     * @return Base64 representation of the public key
-     */
-    public String getPublicKey() {
-        return this.publicKeyAsString;
-    }
-
     public String generateToken() {
         try {
             return JWT.create()
@@ -81,7 +78,7 @@ public class JWTTokenService {
 
     public boolean verifyToken(String token) {
         try {
-            JWTVerifier verifier = JWT.require(algorithm)
+            JWTVerifier verifier = JWT.require(Algorithm.RSA256(publicKey, null))
                     .withIssuer("hydra")
                     .build();
             DecodedJWT jwt = verifier.verify(token);

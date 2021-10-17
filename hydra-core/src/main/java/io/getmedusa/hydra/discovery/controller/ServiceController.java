@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getmedusa.hydra.discovery.model.ActiveService;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.service.RouteService;
+import io.getmedusa.hydra.security.JWTTokenService;
 import io.getmedusa.hydra.util.WebsocketMessageUtils;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
@@ -66,6 +67,15 @@ public class ServiceController {
         }
     }
 
+    public void sendPublicKey() {
+        Map<String, Object> dataToSend = new HashMap<>();
+        dataToSend.put("pub-key", JWTTokenService.publicKeyAsString);
+        this.sendData = Flux.just(WebsocketMessageUtils.fromObject(dataToSend));
+        for(WebSocketSession session : activeSessions) {
+            session.send(sendData).subscribe();
+        }
+    }
+
     @Bean
     public HandlerMapping webSocketHandlerMapping() {
         final Map<String, WebSocketHandler> map = new HashMap<>();
@@ -101,6 +111,7 @@ public class ServiceController {
             activeSessions.add(session);
             registerActiveService(session.getId(), remoteAddress, a);
             sendURLMapToAll();
+            sendPublicKey();
             return Mono.just(a);
         });
     }
