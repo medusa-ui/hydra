@@ -8,6 +8,7 @@ import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.service.RouteService;
 import io.getmedusa.hydra.security.JWTTokenService;
 import io.getmedusa.hydra.util.WebsocketMessageUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.HandlerMapping;
@@ -32,9 +33,11 @@ public class ServiceController {
 
     public static final ObjectMapper MAPPER = setupObjectMapper();
 
-    public ServiceController(RouteService routeService, InMemoryRegistry inMemoryRegistry) {
+    public ServiceController(RouteService routeService, InMemoryRegistry inMemoryRegistry, @Value("${hydra.web.protocol:https}") String protocol) {
         this.inMemoryRegistry = inMemoryRegistry;
         this.routeService = routeService;
+
+        ActiveService.webProtocol = protocol;
     }
 
     /**

@@ -4,6 +4,8 @@ import java.time.Instant;
 import java.util.*;
 
 public class ActiveService {
+    // TODO: will be overridden when ServiceController get initialised
+    public static String webProtocol = "https";
 
     private String host;
     private int port;
@@ -89,7 +91,7 @@ public class ActiveService {
     }
 
     public String toBaseURI() {
-        return ProtocolDecider.getWebProtocol(getHost()) + getHost() + ":" + getPort();
+        return String.format("%s://%s:%s",webProtocol,getHost(),getPort());
     }
 
     @Override
@@ -105,22 +107,4 @@ public class ActiveService {
         return Objects.hash(getHost(), getPort(), getName());
     }
 
-    private static class ProtocolDecider {
-
-        static String getWebProtocol(String host) {
-            if(isLocalHost(host)) return "http://";
-            return "https://";
-        }
-
-        static String getWebSocketProtocol(String host) {
-            if(isLocalHost(host)) return "ws://";
-            return "wss://";
-        }
-
-        private static boolean isLocalHost(String host) {
-            return "localhost".equals(host) || "127.0.0.1".equals(host);
-        }
-
-
-    }
 }

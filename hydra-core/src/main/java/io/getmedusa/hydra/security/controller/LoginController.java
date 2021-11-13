@@ -31,7 +31,7 @@ public class LoginController {
 
         exchange.getResponse().addCookie(ResponseCookie.from("HYDRA-SSO", jwtTokenService.generateToken()).build());
 
-        return Mono.just("redirect:/page2");
+        return Mono.just("redirect:/hydra/status");
     }
 
 }

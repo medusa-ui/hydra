@@ -1,0 +1,39 @@
+version: '3.9'
+
+# docker images can be build via spring-boot:build-image
+# TODO: change the hydra-network.ipv4_address IP-addresses when needed
+services:
+  hydra:
+    image: docker.io/library/hydra-core:0.0.1-SNAPSHOT
+    container_name: hydra-core
+    tty: true
+    ports:
+      - "8761:8761"
+    networks:
+      hydra-network:
+        ipv4_address: 172.23.0.3
+
+  sample-a:
+    image: docker.io/library/sample-a:0.0.1-SNAPSHOT
+    container_name: sample-a
+    tty: true
+    ports:
+      - "8089:8089"
+    networks:
+      hydra-network:
+        ipv4_address: 172.23.0.4
+
+  sample-b:
+    image: docker.io/library/sample-b:0.0.1-SNAPSHOT
+    container_name: sample-b
+    tty: true
+    ports:
+      - "8087:8087"
+    networks:
+      hydra-network:
+        ipv4_address: 172.23.0.5
+
+networks:
+  hydra-network:
+    driver: bridge
+
