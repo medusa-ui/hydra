@@ -1,0 +1,13 @@
+hydra:
+  enable-security: true
+  high-availability: false
+  web:
+    protocol: http
+server:
+  error:
+    whitelabel:
+      enabled: false
+  port: 8761
+spring:
+  main:
+    web-application-type: reactive
