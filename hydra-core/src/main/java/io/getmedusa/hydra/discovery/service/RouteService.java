@@ -1,7 +1,6 @@
 package io.getmedusa.hydra.discovery.service;
 
 import io.getmedusa.hydra.discovery.model.ActiveService;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
@@ -19,7 +18,7 @@ public class RouteService {
 
     @Bean
     @Primary
-    @ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
+    //@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
     public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
         return dynamicRouteProvider;
     }
