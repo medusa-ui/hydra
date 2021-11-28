@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getmedusa.hydra.discovery.model.ActiveService;
 import io.getmedusa.hydra.discovery.registry.InMemoryRegistry;
 import io.getmedusa.hydra.discovery.service.RouteService;
-import io.getmedusa.hydra.security.JWTTokenService;
+import io.getmedusa.hydra.security.service.JWTTokenService;
 import io.getmedusa.hydra.util.WebsocketMessageUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

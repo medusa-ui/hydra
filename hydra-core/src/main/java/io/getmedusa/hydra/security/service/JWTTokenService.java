@@ -1,11 +1,13 @@
-package io.getmedusa.hydra.security;
+package io.getmedusa.hydra.security.service;
 
 import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import io.getmedusa.hydra.discovery.controller.ServiceController;
+import io.getmedusa.hydra.security.domain.HydraUser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 @ConditionalOnProperty("hydra.enable-security")
@@ -64,13 +67,22 @@ public class JWTTokenService {
         return Base64.getEncoder().encodeToString(encoded);
     }
 
-    public String generateToken() {
+    public String generateToken(HydraUser user) {
         try {
-            return JWT.create()
+            final JWTCreator.Builder builder = JWT.create()
                     .withIssuer("hydra")
                     .withExpiresAt(Date.from(ZonedDateTime.now().plusHours(1).toInstant()))
-                    .withClaim("username", "john.doe")
-                    .sign(algorithm);
+                    .withClaim("username", user.getUsername())
+                    .withClaim("userId", user.getId())
+                    .withArrayClaim("roles", user.getRoles().toArray(new String[0]));
+
+            if(null != user.getAdditionalMetadata()) {
+                for(Map.Entry<String, String> entrySet : user.getAdditionalMetadata().entrySet()) {
+                    builder.withClaim(entrySet.getKey(), entrySet.getValue());
+                }
+            }
+
+            return builder.sign(algorithm);
         } catch (JWTCreationException e){
             throw new IllegalStateException("Could not create JWT token from KeyPair", e);
         }

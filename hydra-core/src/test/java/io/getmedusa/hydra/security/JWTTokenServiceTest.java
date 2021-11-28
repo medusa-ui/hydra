@@ -1,6 +1,7 @@
 package io.getmedusa.hydra.security;
 
 import io.getmedusa.hydra.discovery.controller.ServiceController;
+import io.getmedusa.hydra.security.service.JWTTokenService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
