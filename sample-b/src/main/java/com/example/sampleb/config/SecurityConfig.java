@@ -21,7 +21,7 @@ public class SecurityConfig {
         return http.authorizeExchange()
                 .anyExchange().authenticated()
                 .and().formLogin()
-                .and().addFilterAfter(new JWTTokenInterpreter(authenticationManager()), SecurityWebFiltersOrder.AUTHENTICATION)
+                .and().addFilterBefore(new JWTTokenInterpreter(), SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
 
