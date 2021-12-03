@@ -28,9 +28,9 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
+    public Mono<String> login() {
+            return Mono.just("login.html");
+        }
 
     @PostMapping("/login")
     public Mono<String> processLogin(final ServerWebExchange exchange, final LoginForm loginForm) {
@@ -45,7 +45,7 @@ public class LoginController {
             return exchange.getSession()
                     .doOnNext(session -> userService.manualLogin(user, session))
                     .flatMap(WebSession::changeSessionId)
-                    .then(Mono.just("redirect:/hydra/status"));
+                    .then(Mono.just("redirect:/sample-a"));
         });
     }
 }
