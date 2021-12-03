@@ -18,7 +18,7 @@ class JWTTokenServiceTest {
 
     @Test
     void testNewToken() {
-        final String token = service.generateToken();
+        final String token = service.generateToken(null);
         System.out.println(token);
 
         String[] tokenSplit = token.split("\\.");

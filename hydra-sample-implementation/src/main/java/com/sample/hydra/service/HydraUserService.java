@@ -17,6 +17,29 @@ public class HydraUserService implements UserService {
     public HydraUserService(HydraUserRepository userRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+
+        defaultUser(userRepository);
+    }
+
+    private void defaultUser(HydraUserRepository userRepository) {
+        userRepository.count().map(count -> {
+            if (count == 0) {
+                HydraUser hydraUser = new HydraUser();
+                hydraUser.setUsername("kdeyne");
+                hydraUser.setEncodedPassword(passwordEncoder.encode("password123"));
+
+                hydraUser.setRoles("USER");
+                hydraUser.setEnabled(true);
+
+                hydraUser.setAccountExpired(false);
+                hydraUser.setAccountLocked(false);
+                hydraUser.setCredentialsExpired(false);
+
+                userRepository.save(hydraUser)
+                        .subscribe();
+            }
+            return true;
+        }).subscribe();
     }
 
     @Override
