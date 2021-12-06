@@ -10,6 +10,7 @@ public class ActiveService {
     private String host;
     private int port;
     private String name;
+    private String secret;
     private Set<String> endpoints = new HashSet<>();
     private Set<String> websockets = new HashSet<>();
     private Set<String> staticResources = new HashSet<>();
@@ -107,4 +108,11 @@ public class ActiveService {
         return Objects.hash(getHost(), getPort(), getName());
     }
 
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
 }

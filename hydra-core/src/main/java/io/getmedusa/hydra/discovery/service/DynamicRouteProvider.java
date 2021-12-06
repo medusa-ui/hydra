@@ -22,13 +22,15 @@ public class DynamicRouteProvider extends CachingRouteLocator {
 
     private final Set<ActiveService> activeServices = new HashSet<>();
     private final RouteLocatorBuilder builder;
+    private final WeightService weightService;
 
     //important here that the Flux is not final, we specifically want to be able to reload this
     private Flux<Route> routeFlux = Flux.empty();
 
-    public DynamicRouteProvider(RouteLocatorBuilder builder) {
+    public DynamicRouteProvider(RouteLocatorBuilder builder, WeightService weightService) {
         super(new NoopLocator());
         this.builder = builder;
+        this.weightService = weightService;
     }
 
     public void reload() {
@@ -40,7 +42,9 @@ public class DynamicRouteProvider extends CachingRouteLocator {
             final String slashedHydraPath = SLASH + hydraPath + SLASH;
 
             for(String endpoint : activeService.getEndpoints()) {
+                System.out.println(endpoint);
                 routeBuilder.route(r -> r.path(endpoint)
+                                        //TODO .and().weight(endpoint, 10)
                                         .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
                                         .uri(baseURI));
             }

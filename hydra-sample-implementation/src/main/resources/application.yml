@@ -1,4 +1,5 @@
 hydra:
+  secret: "7788348a-43b5-403df9dd823-2504-4abd-8633-27025dacfc014b7-b3430a4d6129"
   enable-security: true
   high-availability: false
   web:

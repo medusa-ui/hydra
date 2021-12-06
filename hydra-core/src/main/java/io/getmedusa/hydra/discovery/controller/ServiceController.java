@@ -30,12 +30,14 @@ public class ServiceController {
 
     private final RouteService routeService;
     private final InMemoryRegistry inMemoryRegistry;
+    private final String expectedSecret;
 
     public static final ObjectMapper MAPPER = setupObjectMapper();
 
-    public ServiceController(RouteService routeService, InMemoryRegistry inMemoryRegistry, @Value("${hydra.web.protocol:https}") String protocol) {
+    public ServiceController(RouteService routeService, InMemoryRegistry inMemoryRegistry, @Value("${hydra.web.protocol:https}") String protocol, @Value("${hydra.secret}") String secret) {
         this.inMemoryRegistry = inMemoryRegistry;
         this.routeService = routeService;
+        this.expectedSecret = secret;
 
         ActiveService.webProtocol = protocol;
     }
@@ -111,11 +113,15 @@ public class ServiceController {
         final InetSocketAddress remoteAddress = session.getHandshakeInfo().getRemoteAddress();
         if (remoteAddress == null) return Mono.empty();
         return mapPayload(payload).flatMap(a -> {
-            activeSessions.add(session);
-            registerActiveService(session.getId(), remoteAddress, a);
-            sendURLMapToAll();
-            sendPublicKey();
-            return Mono.just(a);
+            if(expectedSecret.equals(a.getSecret())) {
+                activeSessions.add(session);
+                registerActiveService(session.getId(), remoteAddress, a);
+                sendURLMapToAll();
+                sendPublicKey();
+                return Mono.just(a);
+            } else {
+                return Mono.error(new SecurityException("Non-matching hydra secret"));
+            }
         });
     }
 
