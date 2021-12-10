@@ -43,20 +43,21 @@ public class DynamicRouteProvider extends CachingRouteLocator {
 
             for(String endpoint : activeService.getEndpoints()) {
                 System.out.println(endpoint);
-                routeBuilder.route(r -> r.path(endpoint)
-                                        //TODO .and().weight(endpoint, 10)
+                routeBuilder.route(endpoint, r -> r.weight(endpoint, weightService.getWeight(endpoint)).and().path(endpoint)
                                         .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
                                         .uri(baseURI));
             }
 
             for(String endpoint : activeService.getWebsockets()) {
-                routeBuilder.route(r -> r.path(SLASH + hydraPath + "/event-emitter/" + endpoint)
+                String hPath = SLASH + hydraPath + "/event-emitter/" + endpoint;
+                routeBuilder.route(hPath, r -> r.weight(hPath, weightService.getWeight(hPath)).and().path(hPath)
                                         .filters(f -> f.rewritePath(slashedHydraPath, SLASH))
                                         .uri(baseURI));
             }
 
             for(String extension : activeService.getStaticResources()) {
-                routeBuilder.route(r -> r.path(SLASH + hydraPath + "/**." + extension)
+                String ePath = SLASH + hydraPath + "/**." + extension;
+                routeBuilder.route(ePath, r -> r.weight(ePath, weightService.getWeight(ePath)).and().path(ePath)
                                          .filters(f -> f
                                                      .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600")
                                                      .rewritePath(slashedHydraPath, SLASH))
