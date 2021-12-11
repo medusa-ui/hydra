@@ -13,3 +13,37 @@ The goal of Hydra is to be an entry point gateway proxy that allows you to deplo
 ---
 
 Concept documentation: https://medusa-ui.gitbook.io/docs/hydra/concept
+
+---
+## Running the sample implementation locally
+If you wish to use the Postgres sample implementation, set up a local postgres (https://www.postgresql.org/download/).
+
+Update, if neccesary, update values in the `application.yml`. 
+
+```
+spring:
+  r2dbc:
+    url: "r2dbc:postgresql://localhost:5432/local_example"
+    username: postgres
+    password: pass123
+```
+We're using a reactive DB driver here, hence the r2dbc. Specific implementation is up to your discretion.
+
+Then in the database, we need one table - to match with the user records:
+```
+CREATE TABLE IF NOT EXISTS public.hydra_user
+(
+    id integer NOT NULL DEFAULT nextval('hydra_user_id_seq'::regclass),
+    encoded_password text COLLATE pg_catalog."default" NOT NULL,
+    username text COLLATE pg_catalog."default" NOT NULL,
+    roles text COLLATE pg_catalog."default" NOT NULL DEFAULT ''::text,
+    account_expired boolean NOT NULL DEFAULT false,
+    account_locked boolean NOT NULL DEFAULT false,
+    credentials_expired boolean NOT NULL DEFAULT false,
+    enabled boolean NOT NULL DEFAULT true,
+    CONSTRAINT hydra_user_pkey PRIMARY KEY (id)
+)
+
+```
+
+No need to set up users yourself, the sample implementation adds a default user for you to use (and login form will be pre-filled with its credentials).
