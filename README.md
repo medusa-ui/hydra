@@ -31,19 +31,16 @@ We're using a reactive DB driver here, hence the r2dbc. Specific implementation 
 
 Then in the database, we need one table - to match with the user records:
 ```
-CREATE TABLE IF NOT EXISTS public.hydra_user
-(
-    id integer NOT NULL DEFAULT nextval('hydra_user_id_seq'::regclass),
-    encoded_password text COLLATE pg_catalog."default" NOT NULL,
-    username text COLLATE pg_catalog."default" NOT NULL,
-    roles text COLLATE pg_catalog."default" NOT NULL DEFAULT ''::text,
+CREATE TABLE public.hydra_user(
+    id serial primary key,
+    encoded_password text NOT NULL,
+    username text NOT NULL,
+    roles text NOT NULL DEFAULT ''::text,
     account_expired boolean NOT NULL DEFAULT false,
     account_locked boolean NOT NULL DEFAULT false,
     credentials_expired boolean NOT NULL DEFAULT false,
-    enabled boolean NOT NULL DEFAULT true,
-    CONSTRAINT hydra_user_pkey PRIMARY KEY (id)
-)
-
+    enabled boolean NOT NULL DEFAULT true
+);
 ```
 
 No need to set up users yourself, the sample implementation adds a default user for you to use (and login form will be pre-filled with its credentials).
