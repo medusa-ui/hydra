@@ -18,7 +18,7 @@ Concept documentation: https://medusa-ui.gitbook.io/docs/hydra/concept
 ## Running the sample implementation locally
 If you wish to use the Postgres sample implementation, set up a local postgres (https://www.postgresql.org/download/).
 
-Update, if neccesary, update values in the `application.yml`. 
+If neccesary, update values in the `application.yml`. 
 
 ```
 spring:
