@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 @Component
 public class ServiceController {
@@ -109,15 +111,19 @@ public class ServiceController {
         return handlerMapping;
     }
 
+    private final Executor singleThreadExecutor = Executors.newSingleThreadExecutor();
+
     private Mono<ActiveService> handleIncomingHealthCheck(WebSocketSession session, String payload) {
         final InetSocketAddress remoteAddress = session.getHandshakeInfo().getRemoteAddress();
         if (remoteAddress == null) return Mono.empty();
         return mapPayload(payload).flatMap(a -> {
             if(expectedSecret.equals(a.getSecret())) {
-                activeSessions.add(session);
-                registerActiveService(session.getId(), remoteAddress, a);
-                sendURLMapToAll();
-                sendPublicKey();
+                singleThreadExecutor.execute(() -> { //force this to be handled sequentially to prevent concurrency errors w/ routes
+                    activeSessions.add(session);
+                    registerActiveService(session.getId(), remoteAddress, a);
+                    sendURLMapToAll();
+                    sendPublicKey();
+                });
                 return Mono.just(a);
             } else {
                 return Mono.error(new SecurityException("Non-matching hydra secret"));

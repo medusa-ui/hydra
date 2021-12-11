@@ -18,7 +18,6 @@ public class RouteService {
 
     @Bean
     @Primary
-    //@ConditionalOnMissingBean(name = "cachedCompositeRouteLocator")
     public RouteLocator cachedCompositeRouteLocator(List<RouteLocator> routeLocators) {
         return dynamicRouteProvider;
     }

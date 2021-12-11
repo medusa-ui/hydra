@@ -42,10 +42,9 @@ public class DynamicRouteProvider extends CachingRouteLocator {
             final String slashedHydraPath = SLASH + hydraPath + SLASH;
 
             for(String endpoint : activeService.getEndpoints()) {
-                System.out.println(endpoint);
                 routeBuilder.route(endpoint, r -> r.weight(endpoint, weightService.getWeight(endpoint)).and().path(endpoint)
-                                        .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
-                                        .uri(baseURI));
+                        .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
+                        .uri(baseURI));
             }
 
             for(String endpoint : activeService.getWebsockets()) {
