@@ -1,15 +1,13 @@
 package io.getmedusa.hydra.status.controller;
 
+import io.getmedusa.medusa.core.annotation.PageAttributes;
+import io.getmedusa.medusa.core.annotation.UIEventPage;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-
-@Controller
+@UIEventPage(path = "/_hydra/overview", file = "pages/overview.html")
 public class OverviewController {
 
-    @GetMapping("/hydra/overview")
-    public String showStatus() {
-        return "overview";
+    public PageAttributes setupAttributes() {
+        return new PageAttributes();
     }
 
 }
