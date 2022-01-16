@@ -1,6 +1,7 @@
 package io.getmedusa.hydra.security;
 
 import io.getmedusa.hydra.discovery.controller.ServiceController;
+import io.getmedusa.hydra.security.domain.HydraUser;
 import io.getmedusa.hydra.security.service.JWTTokenService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +19,11 @@ class JWTTokenServiceTest {
 
     @Test
     void testNewToken() {
-        final String token = service.generateToken(null);
+        HydraUser hydraUser = new HydraUser();
+        hydraUser.setUsername("user1234");
+        hydraUser.setEnabled(true);
+
+        final String token = service.generateToken(hydraUser);
         System.out.println(token);
 
         String[] tokenSplit = token.split("\\.");
