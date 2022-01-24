@@ -80,6 +80,10 @@ public class DynamicRouteProvider extends CachingRouteLocator {
         activeServices.remove(activeService);
     }
 
+    public Set<ActiveService> getActiveServices() {
+        return activeServices;
+    }
+
     /**
      * Negating the use of RouteLocator, all our routes comes from the dynamic {@link ActiveService} set.
      */

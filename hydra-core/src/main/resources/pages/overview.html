@@ -3,9 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <title>Hydra - Overview</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
 </head>
 <body>
 <h1>Overview</h1>
 <p>Some example text.</p>
+
+<table>
+    <tr>
+        <th>name</th>
+        <th>ip</th>
+        <th>version</th>
+        <th>endpoint</th>
+        <th>weight</th>
+    </tr>
+
+    [$foreach $activeServices]
+    <tr class="route">
+        <td>[$each.name]</td>
+        <td>[$each.ip]</td>
+        <td>[$each.version]</td>
+        <td>[$each.endpoint]</td>
+        <td>[$each.weight*10]%</td>
+        <td>
+            <button class="weight-change">Change weight</button>
+            <button>Cancel</button>
+            <button>Cancel</button>
+            <select name="weight" origin-value="[$each.weight]" style="display: none;">
+                <option value="0">0%</option>
+                <option value="1">10%</option>
+                <option value="2">20%</option>
+                <option value="3">30%</option>
+                <option value="4">40%</option>
+                <option value="5">50%</option>
+                <option value="6">60%</option>
+                <option value="7">70%</option>
+                <option value="8">80%</option>
+                <option value="9">90%</option>
+                <option value="10">100%</option>
+            </select>
+        </td>
+    </tr>
+    [$end for]
+</table>
+
+<script>
+    //var _M = _M || {};
+
+    $(function () {
+        //$.ajaxSetup({ headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } });
+        weightChangeEvent();
+    });
+
+    _M.preRender = function (incomingMessage, pendingDomChange) {
+
+    };
+
+    _M.postRender = function (incomingMessage) {
+        weightChangeEvent();
+    };
+
+    function weightChangeEvent() {
+        $(".weight-change").unbind().click(function (){
+            $(this).parent().find("select").show();
+        });
+
+        $("select[name='weight']").unbind().each(function () {
+            let originVal = $(this).attr("origin-value");
+            $(this).find("option:eq("+originVal+")").prop('selected', true);
+        }).change(function (){
+            console.log($(this).val());
+        });
+    }
+</script>
+
 </body>
 </html>
