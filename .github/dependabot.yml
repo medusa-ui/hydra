@@ -4,3 +4,15 @@ updates:
     directory: "/hydra-core/" # Location of package manifests
     schedule:
       interval: "daily"
+  - package-ecosystem: "maven"
+    directory: "/hydra-sample-implementation/" # Location of package manifests
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "maven"
+    directory: "/sample-a/" # Location of package manifests
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "maven"
+    directory: "/sample-b/" # Location of package manifests
+    schedule:
+      interval: "daily"
