@@ -6,8 +6,6 @@ Combine Medusa with Hydra for modularity.
 
 The goal of Hydra is to be an entry point gateway proxy that allows you to deploy frontends modularly. It is a ready-for-use combination of a gateway with service discovery, load balancing, and JWT security. It uses proven frameworks like Spring Cloud Gateway and Service Discovery behind the scenes but streamlines their setup.
 
-
-
 [![Hydra demo video](https://yt-embed.herokuapp.com/embed?v=RHFn0LW7bqw)](https://www.youtube.com/watch?v=RHFn0LW7bqw "Hydra demo")
 
 ---
@@ -20,7 +18,7 @@ If you wish to use the Postgres sample implementation, set up a local postgres (
 
 If neccesary, update values in the `application.yml`. 
 
-```
+```yaml
 spring:
   r2dbc:
     url: "r2dbc:postgresql://localhost:5432/local_example"
@@ -30,7 +28,7 @@ spring:
 We're using a reactive DB driver here, hence the r2dbc. Specific implementation is up to your discretion.
 
 Then in the database, we need one table - to match with the user records:
-```
+```sql
 CREATE TABLE public.hydra_user(
     id serial primary key,
     encoded_password text NOT NULL,
