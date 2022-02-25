@@ -36,27 +36,29 @@ public class DynamicRouteProvider extends CachingRouteLocator {
     public void reload() {
         final RouteLocatorBuilder.Builder routeBuilder = this.builder.routes();
 
+        weightService.load(activeServices);
+
         for(ActiveService activeService : activeServices) {
             final String baseURI = activeService.toBaseURI();
             final String hydraPath = Integer.toString(activeService.hashCode());
             final String slashedHydraPath = SLASH + hydraPath + SLASH;
 
             for(String endpoint : activeService.getEndpoints()) {
-                routeBuilder.route(endpoint, r -> r.weight(endpoint, weightService.getWeight(endpoint)).and().path(endpoint)
+                routeBuilder.route(endpoint, r -> r.weight(endpoint, weightService.generateWeight(endpoint, activeService)).and().path(endpoint)
                         .filters(f -> f.addRequestHeader("hydra-path", hydraPath))
                         .uri(baseURI));
             }
 
             for(String endpoint : activeService.getWebsockets()) {
                 String hPath = SLASH + hydraPath + "/event-emitter/" + endpoint;
-                routeBuilder.route(hPath, r -> r.weight(hPath, weightService.getWeight(hPath)).and().path(hPath)
+                routeBuilder.route(hPath, r -> r.weight(hPath, weightService.generateWeight(hPath, activeService)).and().path(hPath)
                                         .filters(f -> f.rewritePath(slashedHydraPath, SLASH))
                                         .uri(baseURI));
             }
 
             for(String extension : activeService.getStaticResources()) {
                 String ePath = SLASH + hydraPath + "/**." + extension;
-                routeBuilder.route(ePath, r -> r.weight(ePath, weightService.getWeight(ePath)).and().path(ePath)
+                routeBuilder.route(ePath, r -> r.weight(ePath, weightService.generateWeight(ePath, activeService)).and().path(ePath)
                                          .filters(f -> f
                                                      .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600")
                                                      .rewritePath(slashedHydraPath, SLASH))

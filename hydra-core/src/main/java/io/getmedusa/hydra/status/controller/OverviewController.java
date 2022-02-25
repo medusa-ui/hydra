@@ -32,7 +32,7 @@ public class OverviewController {
                 if(!endpoint.equals("/login")) {
                     final String name = a.getName();
                     final String ip = a.getHost() + ":" + a.getPort();
-                    final int weight = weightService.getWeight(endpoint);
+                    final int weight = weightService.generateWeight(endpoint, a);
                     model.add(new OverviewEndpointModel(name, ip, "1.0.0", endpoint, weight));
                 }
             }

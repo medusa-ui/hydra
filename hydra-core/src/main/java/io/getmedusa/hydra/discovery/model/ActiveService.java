@@ -11,6 +11,8 @@ public class ActiveService {
     private int port;
     private String name;
     private String secret;
+    private long version;
+    private AwakeningType awakening;
     private Set<String> endpoints = new HashSet<>();
     private Set<String> websockets = new HashSet<>();
     private Set<String> staticResources = new HashSet<>();
@@ -87,6 +89,7 @@ public class ActiveService {
         return "ActiveService{" +
                 "port=" + port +
                 ", name='" + name + '\'' +
+                ", version=" + version +
                 ", endpoints=" + endpoints +
                 '}';
     }
@@ -98,14 +101,16 @@ public class ActiveService {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ActiveService)) return false;
-        ActiveService that = (ActiveService) o;
-        return getPort() == that.getPort() && getHost().equals(that.getHost()) && Objects.equals(getName(), that.getName());
+        if (!(o instanceof ActiveService that)) return false;
+        return Objects.equals(getPort(), that.getPort()) &&
+                Objects.equals(getHost(), that.getHost()) &&
+                Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getVersion(), that.getVersion());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(getHost(), getPort(), getName());
+        return Objects.hash(getHost(), getPort(), getName(), getVersion());
     }
 
     public String getSecret() {
@@ -114,5 +119,21 @@ public class ActiveService {
 
     public void setSecret(String secret) {
         this.secret = secret;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    public void setVersion(long version) {
+        this.version = version;
+    }
+
+    public AwakeningType getAwakening() {
+        return awakening;
+    }
+
+    public void setAwakening(AwakeningType awakening) {
+        this.awakening = awakening;
     }
 }
