@@ -20,7 +20,7 @@ FROM openjdk:19-jdk
 VOLUME /tmp
 
 # Add Spring Boot app.jar to Container
-COPY --from=build "/showcase/target/showcase-*-SNAPSHOT.jar" app.jar
+COPY --from=build "/showcase/target/hydra-*-SNAPSHOT.jar" app.jar
 
 # Fire up our Spring Boot app by default
 CMD [ "sh", "-c", "java -Dserver.port=$PORT -Xmx300m -Xss512k -XX:CICompilerCount=2 -Dfile.encoding=UTF-8 -XX:+UseContainerSupport -Djava.security.egd=file:/dev/./urandom -jar /app.jar" ]
