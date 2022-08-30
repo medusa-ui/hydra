@@ -8,8 +8,8 @@ import io.getmedusa.hydra.core.repository.meta.RedisRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class MemoryRepository {
@@ -42,7 +42,7 @@ public class MemoryRepository {
         }
     }
 
-    public Map<String, List<ActiveService>> retrieveActiveService() {
+    public Map<String, Set<ActiveService>> retrieveActiveService() {
         if(hasRedis) {
             return redis.retrieveServiceMap();
         } else {

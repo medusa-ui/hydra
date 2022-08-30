@@ -5,8 +5,8 @@ import io.getmedusa.hydra.core.repository.meta.InMemoryStorage;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 public class StatusController {
@@ -22,7 +22,7 @@ public class StatusController {
     }
 
     @GetMapping("/_h/services")
-    public Map<String, List<ActiveService>> showActiveServices() {
+    public Map<String, Set<ActiveService>> showActiveServices() {
         return inMemoryStorage.retrieveServiceMap();
     }
 

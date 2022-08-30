@@ -3,10 +3,7 @@ package io.getmedusa.hydra.core.discovery.model.meta;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class ActiveService {
 
@@ -142,5 +139,17 @@ public class ActiveService {
 
     public String toBaseURI() {
         return String.format("%s://%s:%s",webProtocol,getHost(),getPort());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ActiveService that)) return false;
+        return getPort() == that.getPort() && getSocketPort() == that.getSocketPort() && getWebProtocol().equals(that.getWebProtocol()) && getHost().equals(that.getHost());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getWebProtocol(), getHost(), getPort(), getSocketPort());
     }
 }

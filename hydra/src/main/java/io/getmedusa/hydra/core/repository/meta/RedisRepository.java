@@ -3,8 +3,8 @@ package io.getmedusa.hydra.core.repository.meta;
 import io.getmedusa.hydra.core.discovery.model.meta.ActiveService;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Repository
 public class RedisRepository {
@@ -15,7 +15,7 @@ public class RedisRepository {
     public void storeActiveService(String key, ActiveService service) {
     }
 
-    public Map<String, List<ActiveService>> retrieveServiceMap() {
+    public Map<String, Set<ActiveService>> retrieveServiceMap() {
         return null;
     }
 

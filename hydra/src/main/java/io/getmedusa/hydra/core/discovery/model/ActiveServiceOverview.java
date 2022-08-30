@@ -5,16 +5,17 @@ import io.getmedusa.hydra.core.discovery.model.meta.ActiveService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class ActiveServiceOverview {
 
     private String serviceName;
-    private List<ActiveService> activeServices;
+    private Set<ActiveService> activeServices;
 
-    public static List<ActiveServiceOverview> of(Map<String, List<ActiveService>> activeServicesMap) {
+    public static List<ActiveServiceOverview> of(Map<String, Set<ActiveService>> activeServicesMap) {
         List<ActiveServiceOverview> list = new ArrayList<>();
 
-        for(Map.Entry<String, List<ActiveService>> entry : activeServicesMap.entrySet()) {
+        for(Map.Entry<String, Set<ActiveService>> entry : activeServicesMap.entrySet()) {
             ActiveServiceOverview overview = new ActiveServiceOverview();
             overview.setServiceName(entry.getKey());
             overview.setActiveServices(entry.getValue());
@@ -32,11 +33,11 @@ public class ActiveServiceOverview {
         this.serviceName = serviceName;
     }
 
-    public List<ActiveService> getActiveServices() {
+    public Set<ActiveService> getActiveServices() {
         return activeServices;
     }
 
-    public void setActiveServices(List<ActiveService> activeServices) {
+    public void setActiveServices(Set<ActiveService> activeServices) {
         this.activeServices = activeServices;
     }
 }
