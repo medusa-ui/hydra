@@ -48,7 +48,8 @@ public class DynamicRouteProvider extends CachingRouteLocator {
 
         //weightService.load(activeServices);
 
-        for(ActiveService activeService : activeServices) {
+        final Set<ActiveService> services = Set.copyOf(activeServices);
+        for(ActiveService activeService : services) {
             final String baseURI = activeService.toBaseURI();
             final String hydraPath = normalizeName(activeService.getName());
             final String slashedHydraPath = SLASH + hydraPath + SLASH;
