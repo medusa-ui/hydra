@@ -61,7 +61,8 @@ public class InMemoryStorage {
         if(null != services) {
             serviceMap.put(key, services);
         } else {
-            throw new IllegalStateException("Received request for alive to be updated for non-registered service, must register first");
+            //throw new IllegalStateException("Received request for alive to be updated for non-registered service, must register first");
+            System.out.println("Received request for alive to be updated for non-registered service, must register first: " + key);
         }
     }
 }
