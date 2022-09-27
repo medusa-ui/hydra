@@ -11,7 +11,7 @@
 	</parent>
 	<groupId>io.getmedusa</groupId>
 	<artifactId>hydra</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1_SP3-SNAPSHOT</version>
 	<name>hydra</name>
 	<description>Entry point gateway proxy for Medusa UIs that allows you to deploy frontends modularly</description>
 	<properties>
