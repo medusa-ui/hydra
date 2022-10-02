@@ -1,7 +1,8 @@
-package io.getmedusa.hydra.sample;
+package sample.getmedusa.hydra;
 
 import io.getmedusa.hydra.core.domain.HydraUser;
 import io.getmedusa.hydra.core.service.UserService;
+import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,11 @@ public class HydraUserService implements UserService {
     public HydraUserService(HydraUserRepository userRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public PasswordEncoder encoder() {
+        return new BCryptPasswordEncoder();
     }
 
     @Override

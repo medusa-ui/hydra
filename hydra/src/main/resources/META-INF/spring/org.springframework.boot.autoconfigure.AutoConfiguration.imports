@@ -1,1 +1,2 @@
+org.springframework.cloud.gateway.config.GatewayAutoConfiguration
 io.getmedusa.hydra.core.config.HydraAutoConfiguration
