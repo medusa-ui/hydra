@@ -1,26 +1,25 @@
 package io.getmedusa.hydra.core.controller;
 
 import io.getmedusa.hydra.core.security.JWTTokenService;
-import io.getmedusa.hydra.core.service.UserService;
-import io.getmedusa.medusa.core.annotation.UIEventPage;
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Safelist;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.ResponseCookie;
+import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@UIEventPage(path = "/login", file = "/pages/login.html")
+//@UIEventPage(path = "/login", file = "/pages/login.html")
 public class LoginController {
 
-    private final UserService userService;
+    private final ReactiveUserDetailsService userService;
     private final PasswordEncoder passwordEncoder;
     private final JWTTokenService jwtTokenService;
 
-    public LoginController(UserService userService, PasswordEncoder passwordEncoder, JWTTokenService jwtTokenService) {
+    public LoginController(ReactiveUserDetailsService userService, PasswordEncoder passwordEncoder, JWTTokenService jwtTokenService) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenService = jwtTokenService;
