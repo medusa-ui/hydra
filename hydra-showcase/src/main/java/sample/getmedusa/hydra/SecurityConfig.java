@@ -20,6 +20,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeExchange()
                 .pathMatchers("/login").permitAll()
+                .pathMatchers("/h/**").permitAll()
                 .anyExchange().authenticated()
                 .and()
                 .formLogin()
