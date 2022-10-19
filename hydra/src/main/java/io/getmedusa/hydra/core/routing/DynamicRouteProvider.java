@@ -49,6 +49,7 @@ public class DynamicRouteProvider extends CachingRouteLocator {
         //weightService.load(activeServices);
 
         final Set<ActiveService> services = Set.copyOf(activeServices);
+
         for(ActiveService activeService : services) {
             final String baseURI = activeService.toBaseURI();
             final String hydraPath = normalizeName(activeService.getName());
@@ -76,8 +77,9 @@ public class DynamicRouteProvider extends CachingRouteLocator {
                         .and()
                         .path(hPath)
                         .filters(f -> f
-                                .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600")
-                                .rewritePath(slashedHydraPath, SLASH))
+                                .removeResponseHeader("Cache-Control")
+                                .rewritePath(slashedHydraPath, SLASH)
+                                .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600"))
                         .uri(baseURI));
             }
         }
