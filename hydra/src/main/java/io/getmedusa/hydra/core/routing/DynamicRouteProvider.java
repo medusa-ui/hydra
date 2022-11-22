@@ -54,6 +54,17 @@ public class DynamicRouteProvider extends CachingRouteLocator {
             final String hydraPath = normalizeName(activeService.getName());
             final String slashedHydraPath = SLASH + hydraPath + SLASH;
 
+            for(String staticResource : activeService.getStaticResources()) {
+                String hPath = SLASH + hydraPath + SLASH + staticResource;
+                if(!hPath.endsWith(SLASH)) {
+                    routeBuilder.route(hPath, r -> r.weight(hPath, weightService.generateWeight(hPath, activeService))
+                            .and()
+                            .path(hPath)
+                            .filters(f -> f.rewritePath(slashedHydraPath, SLASH + "static" + SLASH))
+                            .uri(baseURI));
+                }
+            }
+
             for(String endpoint : activeService.getEndpoints()) {
                 routeBuilder.route(endpoint, r -> r
                         .weight(endpoint, weightService.generateWeight(endpoint, activeService))
@@ -70,16 +81,6 @@ public class DynamicRouteProvider extends CachingRouteLocator {
                     .filters(f -> f.rewritePath(slashedHydraPath, SLASH))
                     .uri(baseURI));
 
-            for(String staticResource : activeService.getStaticResources()) {
-                String hPath = SLASH + hydraPath + SLASH + staticResource;
-                routeBuilder.route(hPath, r -> r.weight(hPath, weightService.generateWeight(hPath, activeService))
-                        .and()
-                        .path(hPath)
-                        .filters(f -> f
-                                .addResponseHeader("Cache-Control", "private, max-age 30, max-stale 3600")
-                                .rewritePath(slashedHydraPath, SLASH))
-                        .uri(baseURI));
-            }
         }
 
         routeFlux = routeBuilder.build().getRoutes();

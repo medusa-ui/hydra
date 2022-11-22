@@ -6,9 +6,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
+import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+@Component
 public class JWTAuthSuccessHandler implements ServerAuthenticationSuccessHandler {
 
     private final JWTTokenService jwtTokenService;
@@ -20,6 +22,9 @@ public class JWTAuthSuccessHandler implements ServerAuthenticationSuccessHandler
     @Override
     public Mono<Void> onAuthenticationSuccess(WebFilterExchange webFilterExchange, Authentication authentication) {
         ServerWebExchange exchange = webFilterExchange.getExchange();
+        for (int i = 0; i < 100; i++) {
+            System.out.println("JWTAuthSuccessHandler - Success handler!");
+        }
         exchange.getResponse()
                 .getHeaders()
                 .add(HttpHeaders.AUTHORIZATION,
