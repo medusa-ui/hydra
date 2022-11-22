@@ -94,4 +94,28 @@ public class HydraUser implements UserDetails {
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
+
+    public Map<String, String> getAdditionalMetadata() {
+        return additionalMetadata;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getEncodedPassword() {
+        return encodedPassword;
+    }
+
+    public boolean isAccountExpired() {
+        return accountExpired;
+    }
+
+    public boolean isAccountLocked() {
+        return accountLocked;
+    }
+
+    public boolean isCredentialsExpired() {
+        return credentialsExpired;
+    }
 }
