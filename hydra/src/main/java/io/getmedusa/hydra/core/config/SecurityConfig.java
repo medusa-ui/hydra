@@ -7,12 +7,14 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @EnableWebFluxSecurity
 @Configuration
@@ -30,15 +32,24 @@ public class SecurityConfig {
     //login with 'hello' / 'world'
     @Order(Ordered.HIGHEST_PRECEDENCE)
     @Bean
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http, WebFilterChainServerAuthenticationSuccessHandler handler) {
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
-                .addFilterAt(new LoginWebFilter(authenticationManager, handler), SecurityWebFiltersOrder.AUTHENTICATION)
-                .csrf().disable() //TODO enable + custom login page in showcase
                 .authorizeExchange()
                 .anyExchange().permitAll()
                 .and()
-                .formLogin(Customizer.withDefaults())
-                .httpBasic().disable()
+                .addFilterAt(hydraAuthenticationFilter(), SecurityWebFiltersOrder.FORM_LOGIN)
+                .formLogin(withDefaults())
+                .csrf().disable() //TODO except for login!
                 .build();
+    }
+
+    private AuthenticationWebFilter hydraAuthenticationFilter(){
+        var successHandler = new HydraAuthenticationSuccessHandler();
+
+        var basicAuthenticationFilter = new AuthenticationWebFilter(authenticationManager);
+        basicAuthenticationFilter.setAuthenticationSuccessHandler(successHandler);
+
+        return basicAuthenticationFilter;
+
     }
 }

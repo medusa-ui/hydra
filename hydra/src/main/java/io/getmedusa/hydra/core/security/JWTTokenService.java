@@ -6,6 +6,8 @@ import com.auth0.jwt.interfaces.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.security.KeyPair;
@@ -27,6 +29,8 @@ public class JWTTokenService {
     public static String publicKeyAsString = null;
     private RSAPublicKey publicKey;
 
+    private static final Logger logger = LoggerFactory.getLogger(JWTTokenService.class);
+
     public JWTTokenService() {
         cycleKeys();
     }
@@ -36,13 +40,13 @@ public class JWTTokenService {
      * But be aware - every time you cycle, users need to re-login.
      */
     public void cycleKeys() {
-        System.out.println("Cycling keypair ...");
+        logger.info("Cycling keypair ...");
         final KeyPair pair = generateKeyPair();
         final RSAPrivateKey privateKey = (RSAPrivateKey) pair.getPrivate();
         publicKey = (RSAPublicKey) pair.getPublic();
         this.algorithm = Algorithm.RSA256(publicKey, privateKey);
         publicKeyAsString = getKey(publicKey.getEncoded());
-        System.out.println("Keypair generated");
+        logger.info("Keypair generated: {}", publicKeyAsString);
         //TODO send public key?
     }
 

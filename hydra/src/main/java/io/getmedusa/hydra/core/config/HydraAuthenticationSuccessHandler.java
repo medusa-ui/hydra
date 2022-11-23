@@ -1,19 +1,21 @@
 package io.getmedusa.hydra.core.config;
 
-import org.springframework.context.annotation.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.server.WebFilterExchange;
 import org.springframework.security.web.server.authentication.ServerAuthenticationSuccessHandler;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-@Configuration
-public class WebFilterChainServerAuthenticationSuccessHandler implements ServerAuthenticationSuccessHandler {
+public class HydraAuthenticationSuccessHandler implements ServerAuthenticationSuccessHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(HydraAuthenticationSuccessHandler.class);
 
     @Override
     public Mono<Void> onAuthenticationSuccess(WebFilterExchange webFilterExchange, Authentication authentication) {
         for (int i = 0; i < 100; i++) {
-            System.out.println("WebFilterChainServerAuthenticationSuccessHandler - Success!");
+            logger.error("HydraAuthenticationSuccessHandler - Success!");
         }
         ServerWebExchange exchange = webFilterExchange.getExchange();
         return webFilterExchange.getChain().filter(exchange);
