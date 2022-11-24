@@ -5,16 +5,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.UserDetailsRepositoryReactiveAuthenticationManager;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
-import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.userdetails.ReactiveUserDetailsService;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 
-import static org.springframework.security.config.Customizer.withDefaults;
+import static org.springframework.security.web.server.header.ReferrerPolicyServerHttpHeadersWriter.ReferrerPolicy.SAME_ORIGIN;
+import static org.springframework.security.web.server.header.XFrameOptionsServerHttpHeadersWriter.Mode.SAMEORIGIN;
 
 @EnableWebFluxSecurity
 @Configuration
@@ -22,11 +18,8 @@ public class SecurityConfig {
 
     private final JWTTokenService jwtTokenService;
 
-    private final ReactiveAuthenticationManager authenticationManager;
-
-    public SecurityConfig(JWTTokenService jwtTokenService, ReactiveUserDetailsService userDetailsService) {
+    public SecurityConfig(JWTTokenService jwtTokenService) {
         this.jwtTokenService = jwtTokenService;
-        this.authenticationManager = new UserDetailsRepositoryReactiveAuthenticationManager(userDetailsService);
     }
 
     //login with 'hello' / 'world'
@@ -34,22 +27,14 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         return http
+                .headers(headers -> headers
+                        .frameOptions(frameOptions -> frameOptions.mode(SAMEORIGIN))
+                        .referrerPolicy(SAME_ORIGIN))
                 .authorizeExchange()
                 .anyExchange().permitAll()
                 .and()
-                .addFilterAt(hydraAuthenticationFilter(), SecurityWebFiltersOrder.FORM_LOGIN)
-                .formLogin(withDefaults())
-                .csrf().disable() //TODO except for login!
+                .formLogin(form -> form.authenticationSuccessHandler(new HydraAuthSuccessHandler(jwtTokenService))) //TODO make redirect either a property or dynamic based on referer
+                .csrf().disable() //TODO re-enable this when using gRPC instead of REST for medusa calls
                 .build();
-    }
-
-    private AuthenticationWebFilter hydraAuthenticationFilter(){
-        var successHandler = new HydraAuthenticationSuccessHandler();
-
-        var basicAuthenticationFilter = new AuthenticationWebFilter(authenticationManager);
-        basicAuthenticationFilter.setAuthenticationSuccessHandler(successHandler);
-
-        return basicAuthenticationFilter;
-
     }
 }
