@@ -98,4 +98,7 @@ public class JWTTokenService {
         return false;
     }
 
+    public String getPublicKey() {
+        return publicKeyAsString;
+    }
 }

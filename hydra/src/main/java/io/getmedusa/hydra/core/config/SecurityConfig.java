@@ -38,8 +38,8 @@ public class SecurityConfig {
                         .frameOptions(frameOptions -> frameOptions.mode(SAMEORIGIN))
                         .referrerPolicy(SAME_ORIGIN))
                 .authorizeExchange()
-                .pathMatchers("/login").permitAll()
-                .anyExchange().authenticated()
+                //.pathMatchers("/login").permitAll()
+                .anyExchange().permitAll()
                 .and()
                 .formLogin(form -> form.authenticationSuccessHandler(new HydraAuthSuccessHandler(jwtTokenService)).loginPage("/login"))
                 .csrf().disable() //TODO re-enable this when using gRPC instead of REST for medusa calls

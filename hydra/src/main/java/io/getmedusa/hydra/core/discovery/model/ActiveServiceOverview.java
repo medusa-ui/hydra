@@ -12,7 +12,7 @@ public class ActiveServiceOverview {
     private String serviceName;
     private Set<ActiveService> activeServices;
 
-    public static List<ActiveServiceOverview> of(Map<String, Set<ActiveService>> activeServicesMap) {
+    public static RegistrationResponse of(Map<String, Set<ActiveService>> activeServicesMap, String publicKeyAsString) {
         List<ActiveServiceOverview> list = new ArrayList<>();
 
         for(Map.Entry<String, Set<ActiveService>> entry : activeServicesMap.entrySet()) {
@@ -22,7 +22,7 @@ public class ActiveServiceOverview {
             list.add(overview);
         }
 
-        return list;
+        return new RegistrationResponse(publicKeyAsString, list);
     }
 
     public String getServiceName() {
