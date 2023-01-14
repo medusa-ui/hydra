@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
@@ -24,9 +26,11 @@ import static org.springframework.web.reactive.function.server.RouterFunctions.r
 public class SecurityConfig {
 
     private final JWTTokenService jwtTokenService;
+    private final ResourceLoader resourceLoader;
 
-    public SecurityConfig(JWTTokenService jwtTokenService) {
+    public SecurityConfig(JWTTokenService jwtTokenService, ResourceLoader resourceLoader) {
         this.jwtTokenService = jwtTokenService;
+        this.resourceLoader = resourceLoader;
     }
 
     //login with 'hello' / 'world'
@@ -52,6 +56,12 @@ public class SecurityConfig {
     }
 
     private Mono<ServerResponse> handleLogin(ServerRequest req) {
-        return ServerResponse.ok().contentType(MediaType.TEXT_HTML).render("login");
+        //if there is a custom login.html is available, then show that one. Otherwise, show default-login.html bundled with Hydra
+        Resource resource = resourceLoader.getResource("classpath:templates/login.html");
+        if (resource.exists()) {
+            return ServerResponse.ok().contentType(MediaType.TEXT_HTML).render("login");
+        } else {
+            return ServerResponse.ok().contentType(MediaType.TEXT_HTML).render("default-login");
+        }
     }
 }
