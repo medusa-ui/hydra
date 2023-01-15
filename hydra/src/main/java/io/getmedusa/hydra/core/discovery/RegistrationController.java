@@ -6,6 +6,7 @@ import io.getmedusa.hydra.core.discovery.model.meta.ActiveService;
 import io.getmedusa.hydra.core.repository.MemoryRepository;
 import io.getmedusa.hydra.core.routing.DynamicRouteProvider;
 import io.getmedusa.hydra.core.security.JWTTokenService;
+import io.getmedusa.hydra.core.security.RoleMappingProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
+
+import java.util.Map;
 
 @RestController
 public class RegistrationController {
@@ -27,17 +30,20 @@ public class RegistrationController {
     private final DynamicRouteProvider dynamicRouteProvider;
     private final MemoryRepository memoryRepository;
     private final JWTTokenService jwtTokenService;
+    private final RoleMappingProperties roleMappingProperties;
 
     public RegistrationController(@Value("${medusa.hydra.secret.public}") String publicKey,
                                   @Value("${medusa.hydra.secret.private}") String privateKey,
                                   DynamicRouteProvider dynamicRouteProvider,
                                   MemoryRepository memoryRepository,
-                                  JWTTokenService jwtTokenService) {
+                                  JWTTokenService jwtTokenService,
+                                  RoleMappingProperties roleMappingProperties) {
         this.privateKey = privateKey;
         this.publicKey = publicKey;
         this.dynamicRouteProvider = dynamicRouteProvider;
         this.memoryRepository = memoryRepository;
         this.jwtTokenService = jwtTokenService;
+        this.roleMappingProperties = roleMappingProperties;
     }
 
     @PostMapping("/h/discovery/{publicKey}/registration")
@@ -46,9 +52,10 @@ public class RegistrationController {
                                                            ServerHttpRequest request,
                                                            ServerHttpResponse response) {
         if(this.publicKey.equals(publicKey)) {
+            Map<String, String> relevantRoleMappings = roleMappingProperties.findByService(activeService.getName());
             memoryRepository.storeActiveServices(activeService.getName(), activeService.updateFromRequest(request));
             dynamicRouteProvider.add(activeService);
-            return Mono.just(ActiveServiceOverview.of(memoryRepository.retrieveActiveService(), jwtTokenService.getPublicKey()))
+            return Mono.just(ActiveServiceOverview.of(memoryRepository.retrieveActiveService(), jwtTokenService.getPublicKey(), relevantRoleMappings))
                     .doFinally(x -> dynamicRouteProvider.reload());
         } else {
             response.setStatusCode(HttpStatus.NOT_FOUND);
