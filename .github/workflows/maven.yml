@@ -12,10 +12,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up JDK 17
-      uses: actions/setup-java@v1
-      with:
-        java-version: 17
-    - name: Build with Maven
-      run: mvn clean install -f hydra-core -Dspring.profiles.active=dev
+      - uses: actions/checkout@v3
+      - name: Set up JDK 19
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: 19
+          cache: maven
+      - name: Build medusa-ui with tests
+        working-directory: ./hydra
+        run: mvn clean install --no-transfer-progress -D"spring.profiles.active"=dev
+      - name: Build hydra-showcase with tests
+        working-directory: ./hydra-showcase
+        run: mvn -U clean install --no-transfer-progress -D"spring.profiles.active"=dev
