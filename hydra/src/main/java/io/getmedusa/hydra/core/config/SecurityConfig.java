@@ -40,13 +40,10 @@ public class SecurityConfig {
         return http
                 .headers(headers -> headers
                         .frameOptions(frameOptions -> frameOptions.mode(SAMEORIGIN))
-                        .referrerPolicy(SAME_ORIGIN))
-                .authorizeExchange()
-                //.pathMatchers("/login").permitAll()
-                .anyExchange().permitAll()
-                .and()
+                        .referrerPolicy( referrerPolicySpec -> referrerPolicySpec.policy(SAME_ORIGIN)))
+                .authorizeExchange( authorizeExchange -> authorizeExchange.anyExchange().permitAll() )
                 .formLogin(form -> form.authenticationSuccessHandler(new HydraAuthSuccessHandler(jwtTokenService)).loginPage("/login"))
-                .csrf().disable() //TODO re-enable this when using gRPC instead of REST for medusa calls
+                .csrf(ServerHttpSecurity.CsrfSpec::disable) //TODO re-enable this when using gRPC instead of REST for medusa calls
                 .build();
     }
 
