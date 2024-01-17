@@ -2,7 +2,6 @@ package io.getmedusa.hydra.core.repository;
 
 import io.getmedusa.hydra.core.repository.meta.InMemoryStorage;
 import io.getmedusa.hydra.core.repository.meta.RedisRepository;
-import io.getmedusa.hydra.core.repository.MemoryRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,8 +24,8 @@ class MemoryRepositoryTest {
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
-        memoryRepositoryNoRedis = new MemoryRepository(new InMemoryStorage(), redis, false);
-        memoryRepositoryWRedis = new MemoryRepository(inMemoryStorageWRedis, redis, true);
+        memoryRepositoryNoRedis = new MemoryRepository(new InMemoryStorage(), null);
+        memoryRepositoryWRedis = new MemoryRepository(inMemoryStorageWRedis, redis);
     }
 
     @Test

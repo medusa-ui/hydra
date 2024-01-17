@@ -5,7 +5,7 @@ package io.getmedusa.hydra.core.repository;
 import io.getmedusa.hydra.core.discovery.model.meta.ActiveService;
 import io.getmedusa.hydra.core.repository.meta.InMemoryStorage;
 import io.getmedusa.hydra.core.repository.meta.RedisRepository;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.Map;
@@ -18,10 +18,10 @@ public class MemoryRepository {
     private final RedisRepository redis;
     private final boolean hasRedis;
 
-    public MemoryRepository(InMemoryStorage inMemoryStorage, RedisRepository redis, @Value("${redis.enabled:false}") boolean hasRedis) {
+    public MemoryRepository(InMemoryStorage inMemoryStorage, @Autowired(required = false) RedisRepository redis) {
         this.inMemoryStorage = inMemoryStorage;
-        this.hasRedis = hasRedis;
-        this.redis = hasRedis ? redis : null;
+        this.hasRedis = redis != null;
+        this.redis = redis;
     }
 
     public boolean hasRouteHashChanged() {

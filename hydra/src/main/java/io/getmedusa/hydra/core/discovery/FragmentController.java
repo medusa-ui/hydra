@@ -24,16 +24,16 @@ import java.util.stream.Stream;
 public class FragmentController {
 
     private final String publicKey;
-    private final String privateKey;
+//    private final String privateKey;
 
     private final MemoryRepository memoryRepository;
     private final WebClient client;
 
     public FragmentController(@Value("${medusa.hydra.secret.public}") String publicKey,
-                              @Value("${medusa.hydra.secret.private}") String privateKey,
+                              /*@Value("${medusa.hydra.secret.private}") String privateKey,*/
                               MemoryRepository memoryRepository,
                               WebClient client) {
-        this.privateKey = privateKey;
+//        this.privateKey = privateKey;
         this.publicKey = publicKey;
         this.memoryRepository = memoryRepository;
         this.client = client;

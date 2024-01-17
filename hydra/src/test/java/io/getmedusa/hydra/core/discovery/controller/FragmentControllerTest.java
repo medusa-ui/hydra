@@ -31,7 +31,7 @@ class FragmentControllerTest {
     @BeforeEach
     public void init() {
         MockitoAnnotations.openMocks(this);
-        controller = new FragmentController("public", "private", memoryRepository, client);
+        controller = new FragmentController("public", /*"private", */ memoryRepository, client);
     }
 
     @Test

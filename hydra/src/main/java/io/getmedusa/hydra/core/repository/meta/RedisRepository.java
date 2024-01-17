@@ -7,22 +7,14 @@ import java.util.Map;
 import java.util.Set;
 
 @Repository
-public class RedisRepository {
-    public String retrieveOverallRouteHashKey() {
-        return null;
-    }
+public interface RedisRepository {
 
-    public void storeActiveService(String key, ActiveService service) {
-    }
+    String retrieveOverallRouteHashKey();
 
-    public Map<String, Set<ActiveService>> retrieveServiceMap() {
-        return null;
-    }
+    void storeActiveService(String key, ActiveService service);
 
-    public ActiveService findService(String key) {
-        return null;
-    }
+    Map<String, Set<ActiveService>> retrieveServiceMap();
 
-    public void updateAlive(String key) {
-    }
+    ActiveService findService(String key);
+    void updateAlive(String key);
 }

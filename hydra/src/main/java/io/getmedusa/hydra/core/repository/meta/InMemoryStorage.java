@@ -33,7 +33,7 @@ public class InMemoryStorage {
     public void storeActiveService(String key, ActiveService service) {
         Set<ActiveService> activeServices = serviceMap.get(key, s -> new HashSet<>());
         activeServices.add(service);
-        logger.info("Registering service: {}", service.toString());
+        logger.info("Registering service with key: {}", key);
         serviceMap.put(key, activeServices);
     }
 
@@ -60,7 +60,7 @@ public class InMemoryStorage {
             serviceMap.put(key, services);
         } else {
             //throw new IllegalStateException("Received request for alive to be updated for non-registered service, must register first");
-            System.out.println("Received request for alive to be updated for non-registered service, must register first: " + key);
+            logger.error("Received request for alive to be updated for non-registered service, must register first: " + key);
         }
     }
 }

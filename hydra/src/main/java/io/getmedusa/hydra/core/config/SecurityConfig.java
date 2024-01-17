@@ -12,7 +12,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.reactive.function.server.RouterFunction;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 
@@ -49,10 +48,10 @@ public class SecurityConfig {
 
     @Bean
     RouterFunction<ServerResponse> routes() {
-        return route(GET("/login"), this::handleLogin);
+        return route(GET("/login"), (request -> handleLogin()));
     }
 
-    private Mono<ServerResponse> handleLogin(ServerRequest req) {
+    private Mono<ServerResponse> handleLogin() {
         //if there is a custom login.html is available, then show that one. Otherwise, show default-login.html bundled with Hydra
         Resource resource = resourceLoader.getResource("classpath:templates/login.html");
         if (resource.exists()) {

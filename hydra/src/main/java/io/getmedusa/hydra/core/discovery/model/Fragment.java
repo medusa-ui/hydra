@@ -12,9 +12,6 @@ public class Fragment {
     private List<String> exports = new ArrayList<>();
     private String fallback;
 
-    public Fragment() {
-    }
-
     public String getId() {
         return id;
     }

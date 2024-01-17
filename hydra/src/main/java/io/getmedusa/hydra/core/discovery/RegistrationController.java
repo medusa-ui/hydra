@@ -25,7 +25,7 @@ public class RegistrationController {
     //TODO basic auth w/ priv key
 
     private final String publicKey;
-    private final String privateKey;
+//    private final String privateKey;
 
     private final DynamicRouteProvider dynamicRouteProvider;
     private final MemoryRepository memoryRepository;
@@ -33,12 +33,12 @@ public class RegistrationController {
     private final RoleMappingProperties roleMappingProperties;
 
     public RegistrationController(@Value("${medusa.hydra.secret.public}") String publicKey,
-                                  @Value("${medusa.hydra.secret.private}") String privateKey,
+                                  /*@Value("${medusa.hydra.secret.private}") String privateKey,*/
                                   DynamicRouteProvider dynamicRouteProvider,
                                   MemoryRepository memoryRepository,
                                   JWTTokenService jwtTokenService,
                                   RoleMappingProperties roleMappingProperties) {
-        this.privateKey = privateKey;
+        //this.privateKey = privateKey;
         this.publicKey = publicKey;
         this.dynamicRouteProvider = dynamicRouteProvider;
         this.memoryRepository = memoryRepository;
