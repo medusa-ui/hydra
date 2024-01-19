@@ -61,9 +61,7 @@ public class InMemoryStorage {
         } else {
             //throw new IllegalStateException("Received request for alive to be updated for non-registered service, must register first");
 
-            /* avoid Log Injection */
-            //logger.error("Received request for alive to be updated for non-registered service, must register first: {}", key);
-            logger.error("Received request for alive to be updated for non-registered service, must register first");
+            logger.error("Received request for alive to be updated for non-registered service, must register first: {}", key);
         }
     }
 }
