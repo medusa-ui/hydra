@@ -40,5 +40,4 @@ CREATE TABLE public.hydra_user(
     enabled boolean NOT NULL DEFAULT true
 );
 ```
-
 No need to set up users yourself, the sample implementation adds a default user for you to use (and login form will be pre-filled with its credentials).
