@@ -1,7 +1,7 @@
 # Docker multi-stage build
 
 # 1. Building the App with Maven
-FROM maven:3-openjdk-18-slim as build
+FROM maven:3-openjdk-21-slim as build
 
 COPY ./hydra /hydra
 WORKDIR /hydra
@@ -15,7 +15,7 @@ WORKDIR /showcase
 RUN mvn -B clean install -DskipTests=true
 
 # Just using the build artifact and then removing the build-container
-FROM openjdk:19-jdk
+FROM openjdk:21-jdk
 
 VOLUME /tmp
 
